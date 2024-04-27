@@ -15,17 +15,17 @@ public class CellFactory {
 
     //Cases avec sourcesChaleur  ---> idealement recup les sourcesChaleur de theSystem pour eviter couplage
     //avant il etait en static, a voir si pas remettre par la suite
-    private final int[][] sources = {
+    /*private final int[][] sources = {
         {0, 0}, {0, NUMBER_COLUMNS - 1}, {NUMBER_ROWS - 1, 0}, {NUMBER_ROWS - 1, NUMBER_COLUMNS - 1}, {NUMBER_ROWS / 2, NUMBER_COLUMNS / 2}
-    };
+    };*/
+    private final int[][] sources = ThermoController.getStartHeatSources();
 
     public CellFactory(Cell cell){
         this.cell = cell;
     }
 
-    //NEARBY ? --> 5 et moins
 
-    public  boolean isCellDead(/*boolean hasMiddle, inutile si on recupSources int numberHeatSourcesNearby*/ int row, int col){
+    public  boolean isCellDead(int row, int col){
         //Si le random = 15 alors cellule morte
         //Si source de chaleur proche alors modifie le minimum -2 pour chaque source proche, comme ca moins de chance d etre morte
         
@@ -55,8 +55,8 @@ public class CellFactory {
         
 
         probabiltyToBeDeadCell = (int)(Math.random()*(maxDeadCell-minDeadCell+1)+minDeadCell);
-        System.out.println(probabiltyToBeDeadCell);
         if(probabiltyToBeDeadCell==maxDeadCell){
+            cell.setDead(true);  //on set la cellule a Dead, ce n'est pas a la cellFactory de dire au controller si cellule est morte ou pas ??
             return true;
         }
         

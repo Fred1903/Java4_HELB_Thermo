@@ -11,6 +11,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.GridPane;
+import javafx.scene.paint.Color;
 import javafx.scene.Parent;
 import javafx.stage.Stage;
 
@@ -32,11 +33,15 @@ public class ThermoView implements IThermoObserver, ICellObserver {
     private final int THIRTY = 30;
     private final int FIFTY = 50;
 
+    //private final static int IDEAL_RGB_GREEN_BLUE_MINUS = 42; Faux, a recalculer !!
+    //private final static int IDEAL_RGB_RED_MINUS = 44;
+
+    private final static String BLACK_COLOR ="0,0,0"; //Couleur noir en rgb  
+
     private Integer numberSeconds= 0;
 
-<<<<<<< HEAD
     private String cellId;
-    private String sceneTitle;
+    private String sceneTitle = "HELB Thermo";
 
 
     private Button timeButton = createNewButton(""+numberSeconds,WIDTH_TIME_AND_HEAT_MODE_AND_HEAT_SOURCES_BUTTONS,HEIGHT_TOP_ATTRIBUTES_BUTTONS); //est-ce que le time est considéré comme variable magique ??
@@ -48,18 +53,6 @@ public class ThermoView implements IThermoObserver, ICellObserver {
     private Button pauseButton=createNewButton("▐▐ ",WIDTH_HEIGHT_TIME_SETTINGS_BUTTONS,WIDTH_HEIGHT_TIME_SETTINGS_BUTTONS);
     private Button resetButton=createNewButton("♻",WIDTH_HEIGHT_TIME_SETTINGS_BUTTONS,WIDTH_HEIGHT_TIME_SETTINGS_BUTTONS);
 
-=======
-
-    private Button timeButton = createNewButton(""+numberSeconds,WIDTH_TIME_AND_HEAT_MODE_AND_HEAT_SOURCES_BUTTONS,HEIGHT_TOP_ATTRIBUTES_BUTTONS); //est-ce que le time est considéré comme variable magique ??
-    private Button costButton = createNewButton("€",WIDTH_COST_AND_TEMPERATURES_BUTTONS,HEIGHT_TOP_ATTRIBUTES_BUTTONS);
-    private Button exteriorTemperatureButton = createNewButton("T°ext.",WIDTH_COST_AND_TEMPERATURES_BUTTONS,HEIGHT_TOP_ATTRIBUTES_BUTTONS);
-    private Button averageTemperatureButton = createNewButton("T°moy.",WIDTH_COST_AND_TEMPERATURES_BUTTONS,HEIGHT_TOP_ATTRIBUTES_BUTTONS);
-    private Button heatModeButton = createNewButton("Chauffe mode ▽",WIDTH_TIME_AND_HEAT_MODE_AND_HEAT_SOURCES_BUTTONS,HEIGHT_TOP_ATTRIBUTES_BUTTONS);
-    private Button startButton = createNewButton("▷",WIDTH_HEIGHT_TIME_SETTINGS_BUTTONS,WIDTH_HEIGHT_TIME_SETTINGS_BUTTONS);
-    private Button pauseButton=createNewButton("▐▐ ",WIDTH_HEIGHT_TIME_SETTINGS_BUTTONS,WIDTH_HEIGHT_TIME_SETTINGS_BUTTONS);
-    private Button resetButton=createNewButton("♻",WIDTH_HEIGHT_TIME_SETTINGS_BUTTONS,WIDTH_HEIGHT_TIME_SETTINGS_BUTTONS);
-
->>>>>>> db61e8ac2c49f2eaada66b0435a14931b4b7b2f3
 
 
     private VBox border = new VBox(TWENTY);
@@ -69,20 +62,13 @@ public class ThermoView implements IThermoObserver, ICellObserver {
     private VBox leftVboxHeatSources = new VBox(TWENTY); 
     private GridPane cellBoard = new GridPane();
 
-<<<<<<< HEAD
     private HashMap<String,Button> cellMap= new HashMap<String,Button>(); //Ex Row=10 et col =8 ---> "R10C8"
-=======
-    private HashMap<Integer,Button> cellMap= new HashMap<Integer,Button>(); //Integer ex : 13 ou 1 est la row et 3 le col
->>>>>>> db61e8ac2c49f2eaada66b0435a14931b4b7b2f3
     
  
     public ThermoView(Stage stage) {
         this.stage = stage;
         //Verif si la configuration est bonne  
-<<<<<<< HEAD
         //Est-ce que ce if doit etre ici ? n'est-ce pas de la logique ?
-=======
->>>>>>> db61e8ac2c49f2eaada66b0435a14931b4b7b2f3
         if(ThermoController.getNumberColumns() >= ThermoController.getMINIMUM_NUMBER_ROWS_AND_COLUMNS() && ThermoController.getNumberRows() <=ThermoController.getMAXIMUM_NUMBER_ROWS_AND_COLUMNS()
            && ThermoController.getNumberColumns()<=ThermoController.getMAXIMUM_NUMBER_ROWS_AND_COLUMNS() && ThermoController.getNumberRows() >=ThermoController.getMINIMUM_NUMBER_ROWS_AND_COLUMNS()){
             initializeUI();
@@ -145,7 +131,6 @@ public class ThermoView implements IThermoObserver, ICellObserver {
 
     public void getResetButtonListener(EventHandler<ActionEvent> handler) {
         resetButton.setOnAction(handler);
-<<<<<<< HEAD
     }
 
     public void createCells(){
@@ -164,47 +149,6 @@ public class ThermoView implements IThermoObserver, ICellObserver {
         newButton.setPrefHeight(heigth);
         newButton.setPrefWidth(width);
         return newButton;
-=======
-    }
-
-    public void createCells(){
-        for(int i=0; i<ThermoController.getNumberRows();i++){
-            for(int j=0; j<ThermoController.getNumberColumns();j++){
-                Button cell = createNewButton(null, WIDTH_HEIGHT_CELLS, WIDTH_HEIGHT_CELLS);
-                cellBoard.add(cell,i,j);
-                cellMap.put((i*10+j),cell);  //ex i=5 et j=4 ---> le int va etre 54
-                
-            }
-        }
-    }
-
-    public Button createNewButton(String name, int width, int heigth){
-        Button newButton = new Button(name);
-        newButton.setPrefHeight(heigth);
-        newButton.setPrefWidth(width);
-        return newButton;
-    }
-
-    public void createScene(Parent layout){
-        Scene scene = new Scene(layout, WIDTH_SCENE, HEIGHT_SCENE);
-        stage.setScene(scene);
-        stage.setTitle("HELB Thermo");
-        stage.show();
-    }
-
-    @Override
-    public void update(Object objectToUpdate) {
-        if(objectToUpdate instanceof Integer){
-            timeButton.setText(""+objectToUpdate);
-        }
-    }
-
-    @Override
-    public void updateCellColor(int row, int col) {
-        Button buttonToChangeColor =cellMap.get((row*10+col)); //row 5 col 4 --> 54
-        String color ="#DC143C"; //Couleur rouge
-        buttonToChangeColor.setStyle("-fx-background-color: " + color + ";");
->>>>>>> db61e8ac2c49f2eaada66b0435a14931b4b7b2f3
     }
 
     public void createScene(Parent layout){
@@ -225,19 +169,41 @@ public class ThermoView implements IThermoObserver, ICellObserver {
         }
     }
 
-    @Override//Pour changer la couleur des cellules sources de chaleur
-    public void updateCellColor(int row, int col, boolean isCellDead) { 
+    @Override//Pour changer la couleur des cellules sources de chaleur et cellules mortes
+    public void updateCellColor(int row, int col, boolean isHeatCell, int cellTemperature) { 
         cellId = getCellId(row, col);
-        if(isCellDead){
+        if(isHeatCell || cellTemperature==ThermoController.getDeadCellNoTemperature()){
             Button buttonToChangeColor =cellMap.get(cellId);
-            String color ="#000000"; //Couleur noir
-            buttonToChangeColor.setStyle("-fx-background-color: " + color + ";");
+            String color;
+            if(isHeatCell){//si c est une source de chaleur
+                color = getShadeOfRed(cellTemperature);
+            }
+            else{//sinon si c est une cellule morte
+                color ="-fx-background-color: rgb("+BLACK_COLOR+");";
+            }
+            buttonToChangeColor.setStyle(color);
         }
-        else{
-            Button buttonToChangeColor =cellMap.get(cellId);
-            String color ="#DC143C"; //Couleur rouge
-            buttonToChangeColor.setStyle("-fx-background-color: " + color + ";");
-        }
-        
     }
+
+    public String getShadeOfRed(int temperature) {
+        // On assume que la température varie de 0 à 50
+        int rgbRedValue = 255;
+        int rgbBlueValue = 0;
+        int rgbGreenValue = 0;
+        //Le blue,green et red qu'on change ici sont pour des températures entre 0 et 50, si cet écart est plus grand alorsfaut changer ses valeurs
+        if(temperature<ThermoController.getEstimatedMedianTemperature()){ //si temperature plus petit que 25 alors rouge plus clair
+            for(int i=temperature;i<=ThermoController.getEstimatedMedianTemperature();i++){
+                rgbBlueValue+=8; //clair ok 
+                rgbGreenValue+=8;
+            }
+        }
+        else{ //sinon rouge plus foncé
+            for(int i=ThermoController.getEstimatedMedianTemperature();i<=temperature;i++){
+                rgbRedValue-=6; //foncé ok
+            }
+        }
+        return "-fx-background-color: rgb("+rgbRedValue+","+rgbGreenValue+","+rgbBlueValue+");";
+    }
+
+
 }

@@ -1,26 +1,12 @@
 com/example/ThermoController$3.class
-<<<<<<< HEAD
+com/example/ICellObservable.class
+com/example/ICellObserver.class
+com/example/ThermoController$1.class
 com/example/Cell.class
+com/example/ThermoView.class
+com/example/IThermoObservable.class
+com/example/Main.class
 com/example/CellFactory.class
 com/example/IThermoObserver.class
 com/example/ThermoController$2.class
 com/example/ThermoController.class
-com/example/ICellObservable.class
-com/example/ICellObserver.class
-com/example/ThermoController$1.class
-=======
-com/example/ICellObservable.class
-com/example/ICellObserver.class
-com/example/ThermoController$1.class
-com/example/Cell.class
->>>>>>> db61e8ac2c49f2eaada66b0435a14931b4b7b2f3
-com/example/ThermoView.class
-com/example/IThermoObservable.class
-com/example/TheSystem.class
-com/example/Main.class
-<<<<<<< HEAD
-=======
-com/example/IThermoObserver.class
-com/example/ThermoController$2.class
-com/example/ThermoController.class
->>>>>>> db61e8ac2c49f2eaada66b0435a14931b4b7b2f3

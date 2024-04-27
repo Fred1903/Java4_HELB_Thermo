@@ -1,24 +1,48 @@
 package com.example;
 
 public class Cell {
-    private String color; //view
-    private int temperature;
+    private int temperature; 
 
-    private boolean diffuseHeat;
-    private boolean isDead;
+    private boolean diffuseHeat=false;
+    private boolean isDead=false;
     
 
 
-<<<<<<< HEAD
+    public int getTemperature() {
+        return temperature;
+    }
+
+
+
+    public void setTemperature(int temperature) {
+        this.temperature = temperature;
+    }
+
+
+
+    public boolean iHeatDiffuser() { //Attentions aux noms!!
+        return diffuseHeat;
+    }
+
+
+
+    public void setDiffuseHeat(boolean diffuseHeat) {
+        this.diffuseHeat = diffuseHeat;
+    }
+
+
+
     public void setDead(boolean isDead) {
         this.isDead = isDead;
     }
 
 
 
-=======
->>>>>>> db61e8ac2c49f2eaada66b0435a14931b4b7b2f3
-    public boolean isCellDead(){ //cellule morte
+    public boolean isCellDead(){ //cellule morte "getter"
+        return isDead;
+    }
+
+    public boolean isDead() { //2 fois le meme°
         return isDead;
     }
 }
