@@ -59,6 +59,7 @@ public class ThermoController implements IThermoObservable, ICellObservable {
 
     private ExteriorTemperatureParser exteriorTemperatureParser;
 
+
     private static int[][] startHeatSources; //on ne peut pas mettre en final ici car alors on ne pourra pas initialisée par la suite
     private final int [][] ADJACENT_ITEMS_MATRIX = {{-1,0},{-1,-1},{-1,1},{0,-1},{0,1},{1,0},{1,1},{1,-1}} ; //a gauche row et a droite col
     private final int ROW_POSITION_ADJACENT_ITEMS_MATRIX = 0;
@@ -117,6 +118,7 @@ public class ThermoController implements IThermoObservable, ICellObservable {
                         cell.setTemperature(DEAD_CELL_NO_TEMPERATURE);
                     }
                 }
+                cell.attachCellObserver(thermoView);
                 if(!cell.isCellDead())numberAliveCells++;//pour calculer la temp.moyenne par la suite on prend en compte que les cellules vivantes
                 String cellId = getCellId(row,col);
                 cellMap.put(cellId,cell); //attention put pas add pour hashmap
@@ -138,7 +140,7 @@ public class ThermoController implements IThermoObservable, ICellObservable {
     }
 
     //La meme methode dans view, ok ou duplication ?
-    public String getCellId(int row, int col){
+    public static String getCellId(int row, int col){
         return "R"+row+"C"+col;
     }
 
@@ -258,8 +260,10 @@ public class ThermoController implements IThermoObservable, ICellObservable {
         for (int row = 0; row < NUMBER_ROWS; row++) {
             for (int col = 0; col < NUMBER_COLUMNS; col++) {
                 Cell cell = cellMap.get(getCellId(row, col));
-                if(/*!cell.iHeatDiffuser() &&*/  !cell.isCellDead()){
-                    if(!cell.isHeatDiffuser()){
+                //apd du if logique model ?
+                if(!cell.isCellDead()){
+                    cell.calculateCellTemperature(ADJACENT_ITEMS_MATRIX, outsideTemperature, row, col,cellMap);
+                    /*if(!cell.isHeatDiffuser()){
                         double [] adjacentItemsTemperatures=new double[ADJACENT_ITEMS_MATRIX.length];//nombre de temperatures de cases adjacentes d'une cellule
                         //La 9ieme temperature est celle de la cellule meme qu'on peut directement recuperer dans la classe cell
 
@@ -272,7 +276,8 @@ public class ThermoController implements IThermoObservable, ICellObservable {
                         cell.calculateTemperature(adjacentItemsTemperatures);   
                                 
                         NotifyThermoView(row, col,cell.isHeatDiffuser(), cell.getTemperature()); //on notifie la temperature de la cellule
-                    }
+                    }*/
+                    
                     allAliveCellsTemperature+=cell.getTemperature();
                 }
             }
@@ -280,7 +285,7 @@ public class ThermoController implements IThermoObservable, ICellObservable {
         averageTemperature = allAliveCellsTemperature/numberAliveCells; //on met la variable contenant la temp moyenne a jour, celle-ci est présente dans le notify donc fonctionne
     }
 
-    private double getTemperatureOfAdjacentItem(int row, int col, double outsideTemperature){
+    /*private double getTemperatureOfAdjacentItem(int row, int col, double outsideTemperature){
         Cell cellNextTo = cellMap.get(getCellId(row, col));
         //si l'id de la case est dans la hashmap alors c'est une cellule et on renvoie sa temperature, sinon c'est a l'exterieur et on renvoie temp ext.
         if(cellNextTo != null){
@@ -289,7 +294,7 @@ public class ThermoController implements IThermoObservable, ICellObservable {
         else{
             return outsideTemperature;
         }
-    }
+    }*/
 
     
 }

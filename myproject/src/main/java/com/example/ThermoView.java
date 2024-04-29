@@ -63,7 +63,7 @@ public class ThermoView implements IThermoObserver, ICellObserver {
     private VBox leftVboxHeatSources = new VBox(TWENTY); 
     private GridPane cellBoard = new GridPane();
 
-    VBox left=new VBox(TWENTY);
+    VBox vboxHeatCellsInsideScrollPane=new VBox(TWENTY);
 
     private HashMap<String,Button> cellMap= new HashMap<String,Button>(); //Ex Row=10 et col =8 ---> "R10C8"
     private HashMap<String, Button> heatCellsMap = new HashMap<String, Button>(); 
@@ -88,19 +88,9 @@ public class ThermoView implements IThermoObserver, ICellObserver {
 
 
     private void initializeUI() {
-        ///leftVboxHeatSources.getChildren().addAll(sc1,sc2,sc3);
-        //VBox left=new VBox(TWENTY);
-        /*for(int i=0;i<50;i++){
-            Button b=createNewButton(null, WIDTH_SYSTEM_ATTRIBUTES_BUTTONS, HEIGHT_HEAT_SOURCES);
-            left.getChildren().add(b);
-        }*/
-        /*for (Button heatCellButton : heatCellsMap.values()) {
-            left.getChildren.add()
-        }*/
-
         //Ajout d'une scroll bar pour les sources de chaleurs
         ScrollPane scrollPaneHeatSources = new ScrollPane();
-        scrollPaneHeatSources.setContent(left);
+        scrollPaneHeatSources.setContent(vboxHeatCellsInsideScrollPane);
         scrollPaneHeatSources.setFitToWidth(true);
         scrollPaneHeatSources.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         scrollPaneHeatSources.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
@@ -147,7 +137,7 @@ public class ThermoView implements IThermoObserver, ICellObserver {
                 Button cell = createNewButton(null, WIDTH_HEIGHT_CELLS, WIDTH_HEIGHT_CELLS);
                 ////////////////////!!!!!!!!!!!!!!!! gridpane on ajoute d'abord le col, puis le row !!!!!!!!!!!!
                 cellBoard.add(cell,col,row); //chaque bouton est ajouté dans la gridpane
-                cellMap.put(getCellId(row, col),cell); //la hashmap stock l'id de chaque bouton afin qu'on puisse manier le bouton par la suite
+                cellMap.put(ThermoController.getCellId(row, col),cell); //la hashmap stock l'id de chaque bouton afin qu'on puisse manier le bouton par la suite
                 //grâce à son row et col
             }
         }
@@ -167,10 +157,6 @@ public class ThermoView implements IThermoObserver, ICellObserver {
         stage.show();
     }
 
-    public String getCellId(int row, int col){
-        return "R"+row+"C"+col;
-    }
-
     @Override//Pour mettre à jour le temps affiché
     public void updateSystemAttributes(int time, double averageTemperature, double exteriorTemperature) {
         timeButton.setText(""+time);
@@ -180,7 +166,7 @@ public class ThermoView implements IThermoObserver, ICellObserver {
 
     @Override//Pour changer la couleur des cellules sources de chaleur et cellules mortes
     public void updateCellColor(int row, int col, boolean isHeatCell, double cellTemperature) { 
-        cellId = getCellId(row, col);
+        cellId = ThermoController.getCellId(row, col);
         Button buttonToChangeColor =cellMap.get(cellId);
         String stringToAddForHeatCells="";
         if(isHeatCell || cellTemperature==ThermoController.getDeadCellNoTemperature()){
@@ -203,11 +189,10 @@ public class ThermoView implements IThermoObserver, ICellObserver {
 
     private void addHeatCellToHeatCellMap(String cellId, String color){
         if(!heatCellsMap.containsKey(cellId)){
-            Button heatCellButton = createNewButton(("S"+counterHeatCells), WIDTH_SYSTEM_ATTRIBUTES_BUTTONS, HEIGHT_HEAT_SOURCES);
-            //Button heatCellButton = new Button("S"+counterHeatCells); //le cpt qu on a pré-incrémenté dans le if
+            Button heatCellButton = createNewButton(("S"+counterHeatCells), WIDTH_SYSTEM_ATTRIBUTES_BUTTONS, HEIGHT_HEAT_SOURCES);//le cpt qu on a pré-incrémenté dans le if
             heatCellButton.setStyle(color);
             heatCellsMap.put(cellId, heatCellButton);
-            left.getChildren().add(heatCellButton); //On ajoute le bouton de la source de chaleur dans la vbox de la scrollpane a gauche
+            vboxHeatCellsInsideScrollPane.getChildren().add(heatCellButton); //On ajoute le bouton de la source de chaleur dans la vbox de la scrollpane a gauche
         }
     }
 

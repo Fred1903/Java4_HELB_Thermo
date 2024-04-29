@@ -6,6 +6,7 @@ com/example/ExteriorTemperatureParser.class
 com/example/ThermoController$2.class
 com/example/ThermoController.class
 com/example/ICellObservable.class
+com/example/Cost.class
 com/example/ExteriorTemperature.class
 com/example/ICellObserver.class
 com/example/ThermoController$1.class
