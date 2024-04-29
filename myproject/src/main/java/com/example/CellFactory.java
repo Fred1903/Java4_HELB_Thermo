@@ -6,18 +6,11 @@ public class CellFactory {
     private final int NUMBER_COLUMNS = ThermoController.getNumberColumns();
 
     private int probabiltyToBeDeadCell;
-    //private int maxDeadCell = 15; //doit varier par rapport au nombre de row/col
     private int maxDeadCell = NUMBER_ROWS+NUMBER_COLUMNS;
     private int minDeadCell = 0;
-    //private int maxDistance = 3;  
     //Pas de distance maximale car on veut que plus une case est proche, moins de chance d etre morte, mais pas de distance max!
     private int distance ;
 
-    //Cases avec sourcesChaleur  ---> idealement recup les sourcesChaleur de theSystem pour eviter couplage
-    //avant il etait en static, a voir si pas remettre par la suite
-    /*private final int[][] sources = {
-        {0, 0}, {0, NUMBER_COLUMNS - 1}, {NUMBER_ROWS - 1, 0}, {NUMBER_ROWS - 1, NUMBER_COLUMNS - 1}, {NUMBER_ROWS / 2, NUMBER_COLUMNS / 2}
-    };*/
     private final int[][] sources = ThermoController.getStartHeatSources();
 
     public CellFactory(Cell cell){
@@ -52,7 +45,6 @@ public class CellFactory {
                 break;
             }
         }
-        
 
         probabiltyToBeDeadCell = (int)(Math.random()*(maxDeadCell-minDeadCell+1)+minDeadCell);
         if(probabiltyToBeDeadCell==maxDeadCell){

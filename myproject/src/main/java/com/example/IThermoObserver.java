@@ -1,6 +1,6 @@
 package com.example;
 
 public interface IThermoObserver{
-
-    void update(Object objectToUpdate);
+    //Timeline, temp moyenne, temp exterieure
+    void updateSystemAttributes(int time, double averageTemperature, double exteriorTemperature);
 }

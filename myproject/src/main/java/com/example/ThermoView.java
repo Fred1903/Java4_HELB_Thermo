@@ -22,8 +22,7 @@ public class ThermoView implements IThermoObserver, ICellObserver {
     
     private final int WIDTH_SCENE = 1000 ;
     private final int HEIGHT_SCENE = 700 ;
-    private final int WIDTH_TIME_AND_HEAT_MODE_AND_HEAT_SOURCES_BUTTONS = 150;
-    private final int WIDTH_COST_AND_TEMPERATURES_BUTTONS = 75;
+    private final int WIDTH_SYSTEM_ATTRIBUTES_BUTTONS = 150;
     private final int HEIGHT_TOP_ATTRIBUTES_BUTTONS = 40;
     private final int WIDTH_HEIGHT_TIME_SETTINGS_BUTTONS = 50;
     private final int HEIGHT_HEAT_SOURCES = 100;
@@ -38,17 +37,19 @@ public class ThermoView implements IThermoObserver, ICellObserver {
 
     private final static String BLACK_COLOR ="0,0,0"; //Couleur noir en rgb  
 
+    private int counterHeatCells =0 ;
+
     private Integer numberSeconds= 0;
 
     private String cellId;
     private String sceneTitle = "HELB Thermo";
 
 
-    private Button timeButton = createNewButton(""+numberSeconds,WIDTH_TIME_AND_HEAT_MODE_AND_HEAT_SOURCES_BUTTONS,HEIGHT_TOP_ATTRIBUTES_BUTTONS); //est-ce que le time est considéré comme variable magique ??
-    private Button costButton = createNewButton("€",WIDTH_COST_AND_TEMPERATURES_BUTTONS,HEIGHT_TOP_ATTRIBUTES_BUTTONS);
-    private Button exteriorTemperatureButton = createNewButton("T°ext.",WIDTH_COST_AND_TEMPERATURES_BUTTONS,HEIGHT_TOP_ATTRIBUTES_BUTTONS);
-    private Button averageTemperatureButton = createNewButton("T°moy.",WIDTH_COST_AND_TEMPERATURES_BUTTONS,HEIGHT_TOP_ATTRIBUTES_BUTTONS);
-    private Button heatModeButton = createNewButton("Chauffe mode ▽",WIDTH_TIME_AND_HEAT_MODE_AND_HEAT_SOURCES_BUTTONS,HEIGHT_TOP_ATTRIBUTES_BUTTONS);
+    private Button timeButton = createNewButton(""+numberSeconds,WIDTH_SYSTEM_ATTRIBUTES_BUTTONS,HEIGHT_TOP_ATTRIBUTES_BUTTONS); //est-ce que le time est considéré comme variable magique ??
+    private Button costButton = createNewButton("€",WIDTH_SYSTEM_ATTRIBUTES_BUTTONS,HEIGHT_TOP_ATTRIBUTES_BUTTONS);
+    private Button exteriorTemperatureButton = createNewButton("T°ext.",WIDTH_SYSTEM_ATTRIBUTES_BUTTONS,HEIGHT_TOP_ATTRIBUTES_BUTTONS);
+    private Button averageTemperatureButton = createNewButton("T°moy.",WIDTH_SYSTEM_ATTRIBUTES_BUTTONS,HEIGHT_TOP_ATTRIBUTES_BUTTONS);
+    private Button heatModeButton = createNewButton("Chauffe mode ▽",WIDTH_SYSTEM_ATTRIBUTES_BUTTONS,HEIGHT_TOP_ATTRIBUTES_BUTTONS);
     private Button startButton = createNewButton("▷",WIDTH_HEIGHT_TIME_SETTINGS_BUTTONS,WIDTH_HEIGHT_TIME_SETTINGS_BUTTONS);
     private Button pauseButton=createNewButton("▐▐ ",WIDTH_HEIGHT_TIME_SETTINGS_BUTTONS,WIDTH_HEIGHT_TIME_SETTINGS_BUTTONS);
     private Button resetButton=createNewButton("♻",WIDTH_HEIGHT_TIME_SETTINGS_BUTTONS,WIDTH_HEIGHT_TIME_SETTINGS_BUTTONS);
@@ -62,7 +63,10 @@ public class ThermoView implements IThermoObserver, ICellObserver {
     private VBox leftVboxHeatSources = new VBox(TWENTY); 
     private GridPane cellBoard = new GridPane();
 
+    VBox left=new VBox(TWENTY);
+
     private HashMap<String,Button> cellMap= new HashMap<String,Button>(); //Ex Row=10 et col =8 ---> "R10C8"
+    private HashMap<String, Button> heatCellsMap = new HashMap<String, Button>(); 
     
  
     public ThermoView(Stage stage) {
@@ -85,11 +89,15 @@ public class ThermoView implements IThermoObserver, ICellObserver {
 
     private void initializeUI() {
         ///leftVboxHeatSources.getChildren().addAll(sc1,sc2,sc3);
-        VBox left=new VBox(TWENTY);
-        for(int i=0;i<50;i++){
-            Button b=createNewButton(null, WIDTH_TIME_AND_HEAT_MODE_AND_HEAT_SOURCES_BUTTONS, HEIGHT_HEAT_SOURCES);
+        //VBox left=new VBox(TWENTY);
+        /*for(int i=0;i<50;i++){
+            Button b=createNewButton(null, WIDTH_SYSTEM_ATTRIBUTES_BUTTONS, HEIGHT_HEAT_SOURCES);
             left.getChildren().add(b);
-        }
+        }*/
+        /*for (Button heatCellButton : heatCellsMap.values()) {
+            left.getChildren.add()
+        }*/
+
         //Ajout d'une scroll bar pour les sources de chaleurs
         ScrollPane scrollPaneHeatSources = new ScrollPane();
         scrollPaneHeatSources.setContent(left);
@@ -137,15 +145,16 @@ public class ThermoView implements IThermoObserver, ICellObserver {
         for(int row=0; row<ThermoController.getNumberRows();row++){
             for(int col=0; col<ThermoController.getNumberColumns();col++){
                 Button cell = createNewButton(null, WIDTH_HEIGHT_CELLS, WIDTH_HEIGHT_CELLS);
-                cellBoard.add(cell,row,col); //chaque bouton est ajouté dans la gridpane
+                ////////////////////!!!!!!!!!!!!!!!! gridpane on ajoute d'abord le col, puis le row !!!!!!!!!!!!
+                cellBoard.add(cell,col,row); //chaque bouton est ajouté dans la gridpane
                 cellMap.put(getCellId(row, col),cell); //la hashmap stock l'id de chaque bouton afin qu'on puisse manier le bouton par la suite
                 //grâce à son row et col
             }
         }
     }
 
-    public Button createNewButton(String name, int width, int heigth){
-        Button newButton = new Button(name);
+    public Button createNewButton(String text, int width, int heigth){
+        Button newButton = new Button(text);
         newButton.setPrefHeight(heigth);
         newButton.setPrefWidth(width);
         return newButton;
@@ -163,36 +172,53 @@ public class ThermoView implements IThermoObserver, ICellObserver {
     }
 
     @Override//Pour mettre à jour le temps affiché
-    public void update(Object objectToUpdate) {
-        if(objectToUpdate instanceof Integer){
-            timeButton.setText(""+objectToUpdate);
-        }
+    public void updateSystemAttributes(int time, double averageTemperature, double exteriorTemperature) {
+        timeButton.setText(""+time);
+        averageTemperatureButton.setText("T°moy : "+String.format("%.1f", averageTemperature)+"°C"); //permet d'afficher seulement 1 chiffre après la virgule
+        exteriorTemperatureButton.setText("T°ext : "+exteriorTemperature+"°C");
     }
 
     @Override//Pour changer la couleur des cellules sources de chaleur et cellules mortes
-    public void updateCellColor(int row, int col, boolean isHeatCell, int cellTemperature) { 
+    public void updateCellColor(int row, int col, boolean isHeatCell, double cellTemperature) { 
         cellId = getCellId(row, col);
+        Button buttonToChangeColor =cellMap.get(cellId);
+        String stringToAddForHeatCells="";
         if(isHeatCell || cellTemperature==ThermoController.getDeadCellNoTemperature()){
-            Button buttonToChangeColor =cellMap.get(cellId);
             String color;
             if(isHeatCell){//si c est une source de chaleur
                 color = getShadeOfRed(cellTemperature);
+                stringToAddForHeatCells="S"+(++counterHeatCells)+":\n";
+                addHeatCellToHeatCellMap(cellId,color); 
             }
             else{//sinon si c est une cellule morte
                 color ="-fx-background-color: rgb("+BLACK_COLOR+");";
             }
             buttonToChangeColor.setStyle(color);
         }
+        //Pour les sources de chaleur on ajt le numero de la source, pour les autres cellules, ce sera un string vide
+        if(cellTemperature!=ThermoController.getDeadCellNoTemperature()){
+            buttonToChangeColor.setText(stringToAddForHeatCells+String.format("%.1f", cellTemperature));
+        }
     }
 
-    public String getShadeOfRed(int temperature) {
+    private void addHeatCellToHeatCellMap(String cellId, String color){
+        if(!heatCellsMap.containsKey(cellId)){
+            Button heatCellButton = createNewButton(("S"+counterHeatCells), WIDTH_SYSTEM_ATTRIBUTES_BUTTONS, HEIGHT_HEAT_SOURCES);
+            //Button heatCellButton = new Button("S"+counterHeatCells); //le cpt qu on a pré-incrémenté dans le if
+            heatCellButton.setStyle(color);
+            heatCellsMap.put(cellId, heatCellButton);
+            left.getChildren().add(heatCellButton); //On ajoute le bouton de la source de chaleur dans la vbox de la scrollpane a gauche
+        }
+    }
+
+    public String getShadeOfRed(double temperature) {
         // On assume que la température varie de 0 à 50
         int rgbRedValue = 255;
         int rgbBlueValue = 0;
         int rgbGreenValue = 0;
         //Le blue,green et red qu'on change ici sont pour des températures entre 0 et 50, si cet écart est plus grand alorsfaut changer ses valeurs
         if(temperature<ThermoController.getEstimatedMedianTemperature()){ //si temperature plus petit que 25 alors rouge plus clair
-            for(int i=temperature;i<=ThermoController.getEstimatedMedianTemperature();i++){
+            for(double i=temperature;i<=ThermoController.getEstimatedMedianTemperature();i++){
                 rgbBlueValue+=8; //clair ok 
                 rgbGreenValue+=8;
             }

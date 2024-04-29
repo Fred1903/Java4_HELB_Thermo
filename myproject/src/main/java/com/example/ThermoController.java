@@ -3,12 +3,15 @@ package com.example;
 import javafx.stage.Stage;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.util.Duration;
+//import main.java.com.example.ExteriorTemperature;
+//import main.java.com.example.ExteriorTemperatureParser;
 
 ///Notes : Fabrique pour cellule normale ou morte  --> fabrique si morte mets juste le boolean à true pour isDead, fabrique renvoie pas forcément une classe
 public class ThermoController implements IThermoObservable, ICellObservable {
@@ -17,12 +20,16 @@ public class ThermoController implements IThermoObservable, ICellObservable {
     private Timeline timeline;
     private KeyFrame keyFrame; 
 
+    private boolean areCellsCreated=false;
+    private boolean isSystemPlaying = false;
+
+    
     private final static int FIRST_ROW_COL = 0;
     
     private final static int MINIMUM_NUMBER_ROWS_AND_COLUMNS = 3;
     private final static int MAXIMUM_NUMBER_ROWS_AND_COLUMNS = 12;
-    private final static int NUMBER_ROWS =11;
-    private final static int NUMBER_COLUMNS = 11;
+    private final static int NUMBER_ROWS =3;
+    private final static int NUMBER_COLUMNS = 3;
     private final static int LASTROW = NUMBER_ROWS-1;
     private final static int LASTCOLUMN = NUMBER_COLUMNS-1;
     private final static int HEAT_CELL_START_TEMPERATURE = 18; 
@@ -32,19 +39,30 @@ public class ThermoController implements IThermoObservable, ICellObservable {
     private final static int DISTANCE_MIN_MAX_TEMPERATURE = ESTIMATED_MAX_TEMPERATURE-(+ESTIMATED_MIN_TEMPERATURE);
     private final static int ESTIMATED_MEDIAN_TEMPERATURE = DISTANCE_MIN_MAX_TEMPERATURE/2;
 
-
-
     private int middleRow;
     private int middleColumn;
     private int zero = 0;
     private int numberSeconds = 0;
+    private int numberAliveCells=0;
+
+    private double outsideTemperature;
+    private double averageTemperature;
+
+    private HashMap<String,Cell> cellMap = new HashMap<String,Cell>();
+
+    private final String exteriorTemperatureFile = "src/main/java/com/example/simul.data.txt" ;
 
     private CellFactory cellFactory;
 
     private ICellObserver cellObserver;
     private IThermoObserver thermoObserver;
 
-    private static int[][] startHeatSources; //on ne peut pas mettre en final ici car alors on ne pourra pas initialisée par la suite 
+    private ExteriorTemperatureParser exteriorTemperatureParser;
+
+    private static int[][] startHeatSources; //on ne peut pas mettre en final ici car alors on ne pourra pas initialisée par la suite
+    private final int [][] ADJACENT_ITEMS_MATRIX = {{-1,0},{-1,-1},{-1,1},{0,-1},{0,1},{1,0},{1,1},{1,-1}} ; //a gauche row et a droite col
+    private final int ROW_POSITION_ADJACENT_ITEMS_MATRIX = 0;
+    private final int COL_POSITION_ADJACENT_ITEMS_MATRIX = 1;
     
 
     public ThermoController(Stage primaryStage){
@@ -85,25 +103,27 @@ public class ThermoController implements IThermoObservable, ICellObservable {
 
     //Création des cellules par le système (controller = système)
     public void createCells(){
-        for (int row = 0; row < ThermoController.getNumberRows(); row++) {
-            for (int col = 0; col < ThermoController.getNumberColumns(); col++) {
+        for (int row = 0; row < NUMBER_ROWS; row++) {
+            for (int col = 0; col < NUMBER_COLUMNS; col++) {
                 Cell cell = new Cell();
                 if(isCellEligibleToHeatSource(row,col)){
                     cell.setDiffuseHeat(true);
                     cell.setTemperature(HEAT_CELL_START_TEMPERATURE); 
-                    //NotifyThermoView(row, col, false); //false pr dire pas cellule morte (attetion constante magique) 
                 }
                 else{
                     cellFactory= new CellFactory(cell);
                     if(cellFactory.isCellDead(row,col)){ //si cellule morte 
                         //cell.setDead(true);  //on le fait dans la factory
                         cell.setTemperature(DEAD_CELL_NO_TEMPERATURE);
-                        //NotifyThermoView(row, col, true); //Attntion constante magique
                     }
                 }
-                NotifyThermoView(row, col,cell.iHeatDiffuser(), cell.getTemperature()); //on notifie la temperature de la cellule
+                if(!cell.isCellDead())numberAliveCells++;//pour calculer la temp.moyenne par la suite on prend en compte que les cellules vivantes
+                String cellId = getCellId(row,col);
+                cellMap.put(cellId,cell); //attention put pas add pour hashmap
+                NotifyThermoView(row, col,cell.isHeatDiffuser(), cell.getTemperature()); //on notifie la temperature de la cellule
             }
         }
+        areCellsCreated=true;
     }
 
     @Override
@@ -117,6 +137,10 @@ public class ThermoController implements IThermoObservable, ICellObservable {
         throw new UnsupportedOperationException("Unimplemented method 'detachCellObserver'");
     }
 
+    //La meme methode dans view, ok ou duplication ?
+    public String getCellId(int row, int col){
+        return "R"+row+"C"+col;
+    }
 
     public static int getDeadCellNoTemperature() {
         return DEAD_CELL_NO_TEMPERATURE;
@@ -152,7 +176,7 @@ public class ThermoController implements IThermoObservable, ICellObservable {
 
     public void incrementTime(){
         numberSeconds++;
-        Notify();//chaque seconde on apl la vue pour changer le nombre de secondes sur le bouton temps
+        NotifyThermoViewOfSystemAttributes(numberSeconds,averageTemperature,outsideTemperature);//chaque seconde on apl la vue pour changer le nombre de secondes sur le bouton temps
     }
 
     //On verifie si la cellule est dans un des 4 coins ou au milieu, au milieu pas encore verif
@@ -167,34 +191,36 @@ public class ThermoController implements IThermoObservable, ICellObservable {
 
     //On notifie à la vue qu'elle peut mettre à jour les secondes
     @Override
-    public void Notify(){
-        thermoObserver.update(numberSeconds);
+    public void NotifyThermoViewOfSystemAttributes(int numberSeconds, double averageTemperature, double outsideTemperature){
+        thermoObserver.updateSystemAttributes(numberSeconds, averageTemperature, outsideTemperature);
     }
 
 
     //On dit a la vue qu'elle peut changer la couleur des sources de chaleur
     //et en 4ieme parametre la temperature pr la couleur ?  //ou par ex cell morte a temperature null ? et null=noir
     @Override
-    public void NotifyThermoView(int row, int col, boolean isHeatCell, int cellTemperature) {
+    public void NotifyThermoView(int row, int col, boolean isHeatCell, double cellTemperature) {
         cellObserver.updateCellColor(row,col, isHeatCell, cellTemperature); 
     }
     
 
     private void setActions() {
+        exteriorTemperatureParser=new ExteriorTemperatureParser(exteriorTemperatureFile);
+        attachCellObserver(thermoView);
+
         //Lorsque le bouton start dans la vue a été cliqué, ...
         thermoView.getStartButtonListener(new EventHandler<ActionEvent>() {
             @Override
-            public void handle(ActionEvent event) {
-                //On créé les cellules une fois la timeline activé, si on veut directement créé, juste mettre au début du setActions 
-                attachCellObserver(thermoView);
-                createCells();
-                startTimer();
+            public void handle(ActionEvent event) {  
+                if(!areCellsCreated)createCells(); //on veut creer les cellules que une seule fois au debut
+                if(!isSystemPlaying)startTimer(); //si on a déjà appuyé sur play, alors re-appuyé sur play n'aura pas d'effets
             }
         });
         thermoView.getPauseButtonListener(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
                 timeline.pause();
+                isSystemPlaying=false;
             }
         });
         thermoView.getResetButtonListener(new EventHandler<ActionEvent>(){
@@ -203,7 +229,8 @@ public class ThermoController implements IThermoObservable, ICellObservable {
                 timeline.stop();
                 timeline.jumpTo(Duration.ZERO);
                 numberSeconds = zero;
-                Notify(); //quand on appuie sur reset on notifie la vue ...
+                areCellsCreated=false; //aussi couleur ... a reset
+                NotifyThermoViewOfSystemAttributes(numberSeconds,averageTemperature,outsideTemperature); //quand on appuie sur reset on notifie la vue ...
             }
         });
         attach(thermoView);
@@ -211,11 +238,58 @@ public class ThermoController implements IThermoObservable, ICellObservable {
 
 
     private void startTimer() {
+        isSystemPlaying=true;
         Duration duration = Duration.seconds(1);
-        EventHandler<ActionEvent> eventHandler = e -> incrementTime(); //toutes les secondes on incrémente le temps
+        EventHandler<ActionEvent> eventHandler = e -> {
+            incrementTime(); //toutes les secondes on incrémente le temps
+            ExteriorTemperature ext = exteriorTemperatureParser.getNexExteriorTemperature();
+            calculate();
+        };
         keyFrame = new KeyFrame(duration, eventHandler);
         timeline = new Timeline(keyFrame);
         timeline.setCycleCount(Timeline.INDEFINITE);
         timeline.play();
     }    
+
+    private void calculate(){
+        ExteriorTemperature exteriorTemperature = exteriorTemperatureParser.getNexExteriorTemperature();
+        outsideTemperature = exteriorTemperature.getExteriorTemperature(); 
+        double allAliveCellsTemperature=0;
+        for (int row = 0; row < NUMBER_ROWS; row++) {
+            for (int col = 0; col < NUMBER_COLUMNS; col++) {
+                Cell cell = cellMap.get(getCellId(row, col));
+                if(/*!cell.iHeatDiffuser() &&*/  !cell.isCellDead()){
+                    if(!cell.isHeatDiffuser()){
+                        double [] adjacentItemsTemperatures=new double[ADJACENT_ITEMS_MATRIX.length];//nombre de temperatures de cases adjacentes d'une cellule
+                        //La 9ieme temperature est celle de la cellule meme qu'on peut directement recuperer dans la classe cell
+
+                        for(int adjacentItem=0; adjacentItem<adjacentItemsTemperatures.length;adjacentItem++){
+                            int rowOfAdjacentItem = ADJACENT_ITEMS_MATRIX[adjacentItem][0];
+                            int colOfadjacentItem = ADJACENT_ITEMS_MATRIX [adjacentItem][1];
+                            /// rowOfAdjacentItem n'est pas son row mais son row par rapport a notre row
+                            adjacentItemsTemperatures[adjacentItem]=getTemperatureOfAdjacentItem((row+rowOfAdjacentItem), (col+colOfadjacentItem), outsideTemperature);
+                        }
+                        cell.calculateTemperature(adjacentItemsTemperatures);   
+                                
+                        NotifyThermoView(row, col,cell.isHeatDiffuser(), cell.getTemperature()); //on notifie la temperature de la cellule
+                    }
+                    allAliveCellsTemperature+=cell.getTemperature();
+                }
+            }
+        }
+        averageTemperature = allAliveCellsTemperature/numberAliveCells; //on met la variable contenant la temp moyenne a jour, celle-ci est présente dans le notify donc fonctionne
+    }
+
+    private double getTemperatureOfAdjacentItem(int row, int col, double outsideTemperature){
+        Cell cellNextTo = cellMap.get(getCellId(row, col));
+        //si l'id de la case est dans la hashmap alors c'est une cellule et on renvoie sa temperature, sinon c'est a l'exterieur et on renvoie temp ext.
+        if(cellNextTo != null){
+            return cellNextTo.getTemperature();
+        }
+        else{
+            return outsideTemperature;
+        }
+    }
+
+    
 }
