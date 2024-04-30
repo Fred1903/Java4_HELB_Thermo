@@ -35,7 +35,8 @@ public class ThermoView implements IThermoObserver, ICellObserver {
     //private final static int IDEAL_RGB_GREEN_BLUE_MINUS = 42; Faux, a recalculer !!
     //private final static int IDEAL_RGB_RED_MINUS = 44;
 
-    private final static String BLACK_COLOR ="0,0,0"; //Couleur noir en rgb  
+    private final static String DEAD_CELL_COLOR ="0,0,0"; //Couleur noir en rgb  
+    private final static String UNACTIVE_HEAT_CELL_COLOR = "186,186,186"; //Couleur grise
 
     private int counterHeatCells =0 ;
 
@@ -65,8 +66,9 @@ public class ThermoView implements IThermoObserver, ICellObserver {
 
     VBox vboxHeatCellsInsideScrollPane=new VBox(TWENTY);
 
-    private HashMap<String,Button> cellMap= new HashMap<String,Button>(); //Ex Row=10 et col =8 ---> "R10C8"
-    private HashMap<String, Button> heatCellsMap = new HashMap<String, Button>(); 
+    private HashMap<String,Button> cellMap= new HashMap<String,Button>(); //CellId(Ex Row=10 et col =8 ---> "R10C8"), btn
+    private HashMap<String, Button> heatCellsMap = new HashMap<String, Button>(); //cellId, btn
+    private HashMap<String, Integer> heatCellsCounterMap = new HashMap<String,Integer>(); //cellId,counter
     
  
     public ThermoView(Stage stage) {
@@ -118,18 +120,26 @@ public class ThermoView implements IThermoObserver, ICellObserver {
         createScene(border);
     }
 
-    //Méthode pour que le controller puisse détecter quand est-ce que le bouton start a été appuyé
-    public void getStartButtonListener(EventHandler<ActionEvent> handler) {
-        startButton.setOnAction(handler);
+    public Button getHeatCellButton(String cellId){
+        return heatCellsMap.get(cellId);
     }
 
-    public void getPauseButtonListener(EventHandler<ActionEvent> handler) {
-        pauseButton.setOnAction(handler);
+    public Button getCellButton(String cellId){
+        return cellMap.get(cellId);
     }
 
-    public void getResetButtonListener(EventHandler<ActionEvent> handler) {
-        resetButton.setOnAction(handler);
+    public Button getStartButton(){
+        return startButton;
     }
+
+    public Button getPauseButton(){
+        return pauseButton;
+    }
+
+    public Button getResetButton(){
+        return resetButton;
+    }
+
 
     public void createCells(){
         for(int row=0; row<ThermoController.getNumberRows();row++){
@@ -164,36 +174,46 @@ public class ThermoView implements IThermoObserver, ICellObserver {
         exteriorTemperatureButton.setText("T°ext : "+exteriorTemperature+"°C");
     }
 
-    @Override//Pour changer la couleur des cellules sources de chaleur et cellules mortes
-    public void updateCellColor(int row, int col, boolean isHeatCell, double cellTemperature) { 
+    @Override//Pour changer la couleur des cellules vivantes et  mortes
+    public void updateCellColor(int row, int col, boolean isHeatCell, boolean isHeatDiffuser, double cellTemperature) { 
         cellId = ThermoController.getCellId(row, col);
         Button buttonToChangeColor =cellMap.get(cellId);
         String stringToAddForHeatCells="";
-        if(isHeatCell || cellTemperature==ThermoController.getDeadCellNoTemperature()){
-            String color;
-            if(isHeatCell){//si c est une source de chaleur
-                color = getShadeOfRed(cellTemperature);
-                stringToAddForHeatCells="S"+(++counterHeatCells)+":\n";
-                addHeatCellToHeatCellMap(cellId,color); 
-            }
-            else{//sinon si c est une cellule morte
-                color ="-fx-background-color: rgb("+BLACK_COLOR+");";
-            }
-            buttonToChangeColor.setStyle(color);
-        }
-        //Pour les sources de chaleur on ajt le numero de la source, pour les autres cellules, ce sera un string vide
+        String color;
         if(cellTemperature!=ThermoController.getDeadCellNoTemperature()){
-            buttonToChangeColor.setText(stringToAddForHeatCells+String.format("%.1f", cellTemperature));
+            if(isHeatCell){
+                if(!isHeatDiffuser){
+                    color = "-fx-background-color: rgb("+UNACTIVE_HEAT_CELL_COLOR+");"; //En gris si la source de chaleur est désactivée
+                }
+                else{
+                    color= getShadeOfRed(cellTemperature); //pour source chaleur activée
+                }
+                stringToAddForHeatCells="S"+heatCellsCounterMap.get(cellId)+"\n"; //Pour les sources de chaleur on ajt le numero de la source, pour les autres cellules, ce sera un string vide
+                addHeatCellToHeatCellMap(cellId,color); //ajout dans la hashmap pour la vbox du scrollpane
+            }
+            else{
+                color=getShadeOfRed(cellTemperature); //Pour cellule normale
+            }
+            buttonToChangeColor.setText(stringToAddForHeatCells+String.format("%.1f", cellTemperature)); //1 seul chiffre après la virgule
         }
+        else{
+            color ="-fx-background-color: rgb("+DEAD_CELL_COLOR+");"; //sinon si cellule morte en noir
+        }
+        buttonToChangeColor.setStyle(color); //pr toutes les cellules on met une couleur
     }
 
     private void addHeatCellToHeatCellMap(String cellId, String color){
+        Button heatCellButton;
         if(!heatCellsMap.containsKey(cellId)){
-            Button heatCellButton = createNewButton(("S"+counterHeatCells), WIDTH_SYSTEM_ATTRIBUTES_BUTTONS, HEIGHT_HEAT_SOURCES);//le cpt qu on a pré-incrémenté dans le if
-            heatCellButton.setStyle(color);
+            heatCellsCounterMap.put(cellId,heatCellsCounterMap.size()+1); //le int du dernier element ajt=taille de la map avant l'ajout+1 car on veut pas commencer a 0  
+            heatCellButton = createNewButton("S"+heatCellsCounterMap.get(cellId), WIDTH_SYSTEM_ATTRIBUTES_BUTTONS, HEIGHT_HEAT_SOURCES);
             heatCellsMap.put(cellId, heatCellButton);
-            vboxHeatCellsInsideScrollPane.getChildren().add(heatCellButton); //On ajoute le bouton de la source de chaleur dans la vbox de la scrollpane a gauche
+            vboxHeatCellsInsideScrollPane.getChildren().add(heatCellButton); //On ajoute le bouton de la source de chaleur dans la vbox de la scrollpane a gauche 
         }
+        else{
+            heatCellButton = heatCellsMap.get(cellId);
+        }
+        heatCellButton.setStyle(color);
     }
 
     public String getShadeOfRed(double temperature) {

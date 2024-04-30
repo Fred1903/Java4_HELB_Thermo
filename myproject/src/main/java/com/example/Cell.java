@@ -7,6 +7,8 @@ public class Cell implements ICellObservable{
     private double temperature; 
 
     private boolean diffuseHeat=false;
+    private boolean heatCell=false;
+
     private boolean isDead=false;
 
     ICellObserver cellObserver;
@@ -24,8 +26,9 @@ public class Cell implements ICellObservable{
                 }
                 calculateTemperature(adjacentItemsTemperatures);   
                         
-                NotifyThermoView(row, col,diffuseHeat, temperature); //on notifie la temperature de la cellule
+                
             }
+            NotifyThermoView(row, col,heatCell, diffuseHeat, temperature); //on notifie la temperature de la cellule
     }
     
     private double getTemperatureOfAdjacentItem(int row, int col, double outsideTemperature, HashMap<String, Cell> cellMap){
@@ -62,10 +65,12 @@ public class Cell implements ICellObservable{
         this.temperature = temperature;
     }
 
-
-
     public boolean isHeatDiffuser() { //Attentions aux noms!!
         return diffuseHeat;
+    }
+
+    public boolean isHeatCell(){
+        return heatCell;
     }
 
     public boolean isCellDead(){ //cellule morte "getter"
@@ -74,6 +79,14 @@ public class Cell implements ICellObservable{
 
     public void setDiffuseHeat(boolean diffuseHeat) {
         this.diffuseHeat = diffuseHeat;
+        if(diffuseHeat){
+            setIsHeatCell(diffuseHeat); //si une cellule diffuse de la chaleur (elle est active), ce sera doffice une source de chaleur
+            temperature=ThermoController.getHeatCellStartTemperature() ; //quand on réactive une source de chaleur on remet ca temperature a celle de base
+        }
+    }
+
+    public void setIsHeatCell(boolean heatCell){
+        this.heatCell=heatCell;
     }
 
 
@@ -83,8 +96,8 @@ public class Cell implements ICellObservable{
     }
 
     @Override
-    public void NotifyThermoView(int row, int col, boolean isHeatCell, double cellTemperature) {
-        cellObserver.updateCellColor(row,col,isHeatCell,cellTemperature);
+    public void NotifyThermoView(int row, int col, boolean isHeatCell, boolean isHeatDiffuser, double cellTemperature) {
+        cellObserver.updateCellColor(row,col,isHeatCell, isHeatDiffuser,cellTemperature);
     }
 
     @Override
