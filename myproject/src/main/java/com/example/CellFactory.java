@@ -8,10 +8,9 @@ public class CellFactory {
     private int probabiltyToBeDeadCell;
     private int maxDeadCell = NUMBER_ROWS+NUMBER_COLUMNS;
     private int minDeadCell = 0;
-    //Pas de distance maximale car on veut que plus une case est proche, moins de chance d etre morte, mais pas de distance max!
     private int distance ;
 
-    private final int[][] sources = ThermoController.getStartHeatSources();
+    private final int[][] heatSources = ThermoController.getStartHeatSources();
 
     public CellFactory(Cell cell){
         this.cell = cell;
@@ -22,28 +21,10 @@ public class CellFactory {
         //Si le random = 15 alors cellule morte
         //Si source de chaleur proche alors modifie le minimum -2 pour chaque source proche, comme ca moins de chance d etre morte
         
-
-        /*boolean isClose = isSourceClose(row, col, maxDistance);
-        if(isClose){ //si cellule est pres de la source de chaleur(par rapport a distanceMax), alors -2 par case proche pour augmenter le random
-            //a voir si on enleve pas distance et on met juste -2 par case proche 
-            for (int i = 1; i <= maxDistance; i++) {
-                //if(distance == i) break;
-                if(i<=distance){
-                    minDeadCell -=2;
-                }
-                else{
-                    break;
-                }
-            }
-        }*/
         int shortestDistanceToHeatCell = getShortestDistanceToHeatCell(row,col);
-        for(int i=1; i<=NUMBER_COLUMNS;i++) { //la j ai mis numbercol, mais faut regarder la distance maximum possible avec source chal
-            if(i<=distance){
-                minDeadCell -=2;
-            }
-            else{
-                break;
-            }
+        
+        for(int i=1; i<=shortestDistanceToHeatCell;i++){//on commence a 1 pck sinon un valeur en trop
+            minDeadCell ++; //plus une cellule est éloignée d'une source de chaleur, plus l'écart du random devient petit pour que plus de chance d etre morte
         }
 
         probabiltyToBeDeadCell = (int)(Math.random()*(maxDeadCell-minDeadCell+1)+minDeadCell);
@@ -54,33 +35,22 @@ public class CellFactory {
         
         return false;
     }
-    //Avant en static
-    /*private boolean isSourceClose(int x, int y, int maxDistance) {
-        for (int[] source : sources) {
-            if (calculateManhattanDistance(x, y, source[0], source[1]) <= maxDistance) {
-                return true;
-            }
-        }
-        return false;
-    }*/
 
-    private int getShortestDistanceToHeatCell(int x, int y) {
-        int shortestDistance = Integer.MAX_VALUE; // Initialiser avec une valeur très grande
+    private int getShortestDistanceToHeatCell(int rowCell, int colCell) {
+        int shortestDistance = ThermoController.getMAXIMUM_NUMBER_ROWS_AND_COLUMNS(); // On met une grande valeur de base
 
-        for (int[] source : sources) {
-            int distance = calculateManhattanDistance(x, y, source[0], source[1]);
+        for (int[] heatSource : heatSources) {//pour chaque source de chaleur on reg la distance avec x,y
+            int distance = calculateManhattanDistance(rowCell, colCell, heatSource[0], heatSource[1]);
             if (distance < shortestDistance) {
-                shortestDistance = distance;
+                shortestDistance = distance; //pour chaque passage dans la boucle on verifie si la distance est plus petite que la distance plus petite qu'on avait avant
             }
         }
         return shortestDistance;
     }
 
 
-    //Avant en static
-    private int calculateManhattanDistance(int x1, int y1, int x2, int y2) {
-        distance = Math.abs(x1 - x2) + Math.abs(y1 - y2); 
-        return Math.abs(x1 - x2) + Math.abs(y1 - y2);
+    private int calculateManhattanDistance(int rowCell, int colCell, int rowHeatCell, int colHeatCell) { 
+        return Math.abs(rowCell - rowHeatCell) + Math.abs(colCell - colHeatCell);
     }
 
      

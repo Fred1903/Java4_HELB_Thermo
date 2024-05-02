@@ -15,7 +15,7 @@ public class Cell implements ICellObservable{
 
 
     public void calculateCellTemperature(int[][] ADJACENT_ITEMS_MATRIX, double outsideTemperature,int row, int col, HashMap<String, Cell> cellMap){
-            if(!diffuseHeat){
+            if(!diffuseHeat && !isDead){
                 //La 9ieme temperature est celle de la cellule meme qu'on peut directement recuperer dans la classe cell
                 double [] adjacentItemsTemperatures=new double[ADJACENT_ITEMS_MATRIX.length];//nombre de temperatures de cases adjacentes d'une cellule
                 for(int adjacentItem=0; adjacentItem<adjacentItemsTemperatures.length;adjacentItem++){
@@ -25,8 +25,6 @@ public class Cell implements ICellObservable{
                     adjacentItemsTemperatures[adjacentItem]=getTemperatureOfAdjacentItem((row+rowOfAdjacentItem), (col+colOfadjacentItem), outsideTemperature, cellMap);
                 }
                 calculateTemperature(adjacentItemsTemperatures);   
-                        
-                
             }
             NotifyThermoView(row, col,heatCell, diffuseHeat, temperature); //on notifie la temperature de la cellule
     }
@@ -93,6 +91,7 @@ public class Cell implements ICellObservable{
 
     public void setDead(boolean isDead) {
         this.isDead = isDead;
+        if(isDead)temperature=ThermoController.getDeadCellNoTemperature();
     }
 
     @Override

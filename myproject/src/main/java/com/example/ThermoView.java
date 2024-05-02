@@ -176,11 +176,14 @@ public class ThermoView implements IThermoObserver, ICellObserver {
 
     @Override//Pour changer la couleur des cellules vivantes et  mortes
     public void updateCellColor(int row, int col, boolean isHeatCell, boolean isHeatDiffuser, double cellTemperature) { 
+        if(row==0 && col==2){
+            System.out.println("heat cell:"+isHeatCell+" cellTemp:"+cellTemperature);
+        }
         cellId = ThermoController.getCellId(row, col);
         Button buttonToChangeColor =cellMap.get(cellId);
         String stringToAddForHeatCells="";
         String color;
-        if(cellTemperature!=ThermoController.getDeadCellNoTemperature()){
+        if(cellTemperature!=ThermoController.getDeadCellNoTemperature()){//ok ? ou ajt en parametre bool isDeadCell
             if(isHeatCell){
                 if(!isHeatDiffuser){
                     color = "-fx-background-color: rgb("+UNACTIVE_HEAT_CELL_COLOR+");"; //En gris si la source de chaleur est désactivée

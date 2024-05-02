@@ -25,8 +25,8 @@ public class ThermoController implements IThermoObservable, ICellObservable {
     private final static int FIRST_ROW_COL = 0;
     private final static int MINIMUM_NUMBER_ROWS_AND_COLUMNS = 3;
     private final static int MAXIMUM_NUMBER_ROWS_AND_COLUMNS = 12;
-    private final static int NUMBER_ROWS =3;
-    private final static int NUMBER_COLUMNS = 3;
+    private final static int NUMBER_ROWS =4;
+    private final static int NUMBER_COLUMNS = 5;
     private final static int LASTROW = NUMBER_ROWS-1;
     private final static int LASTCOLUMN = NUMBER_COLUMNS-1;
     private final static int HEAT_CELL_START_TEMPERATURE = 18; 
@@ -63,6 +63,7 @@ public class ThermoController implements IThermoObservable, ICellObservable {
 
     public ThermoController(Stage primaryStage){
         this.thermoView = new ThermoView(primaryStage);
+        cellConfigurationView=new CellConfigurationView();
         if(LASTCOLUMN%2==0 && LASTROW%2==0){ /////A changer  ---> pas optimal si on veut changer le nombre de sources de chaleurs au debut
             startHeatSources = new int[][]{
                 {0, 0}, {0, NUMBER_COLUMNS - 1}, {NUMBER_ROWS - 1, 0}, {NUMBER_ROWS - 1, NUMBER_COLUMNS - 1}, {NUMBER_ROWS / 2, NUMBER_COLUMNS / 2}
@@ -221,10 +222,6 @@ public class ThermoController implements IThermoObservable, ICellObservable {
             areCellsCreated=false; //aussi couleur ... a reset
             NotifyThermoViewOfSystemAttributes(numberSeconds,averageTemperature,outsideTemperature); //quand on appuie sur reset on notifie la vue ...
         });
-
-        cellConfigurationView.getSubmitButton().setOnActionI(e -> {
-            //cellConfigurationView.get //dead et temp et sc
-        });
     }
 
 
@@ -252,16 +249,33 @@ public class ThermoController implements IThermoObservable, ICellObservable {
                 final int colCopy = col;
                 Cell cell = cellMap.get(getCellId(row, col));
                 if(cell.isHeatCell()){ //On doit mettre ce if avant l'autre car dans l'autre if a la fin du calculateCellTemp ya un notify pour la vue
-                    thermoView.getHeatCellButton(getCellId(row, col)).setOnAction(e -> {//lorsque un click est effectué sur une sc a gauche
-                        cell.setDiffuseHeat(!cell.isHeatDiffuser());
-                    });
+                    System.out.println("dans if cell.isheat"); 
+                    if(thermoView.getHeatCellButton(getCellId(row, col))!=null){//doit faire ce if car lorsque créer sc, pas encore dans heatCellbtn
+                        thermoView.getHeatCellButton(getCellId(row, col)).setOnAction(e -> {//lorsque un click est effectué sur une sc a gauche
+                            System.out.println("dans if cell.isheat setaction");
+                            cell.setDiffuseHeat(!cell.isHeatDiffuser());
+                        });
+                    }   
+                    
                 }
-                thermoView.getCellButton(getCellId(row, col)).setOnAction(e -> {//click sur une cellule de la grille
+                thermoView.getCellButton(getCellId(row, col)).setOnAction(event -> {//click sur une cellule de la grille
                     //il est interdit de mettre en paramètre une valeur qui n'est pas finale et qui s'incrémente à chaque fois  --> faire une copie en final
-                    cellConfigurationView.display(cell,rowCopy,colCopy);
+                    System.out.println("avant display");
+                    CellConfigurationView.display(cell,rowCopy,colCopy);
+                    /*CellConfigurationView.getSubmitButton().setOnAction(e -> {//lors de la validation du formulaire 
+                        /*cell.setDead(cellConfigurationView.isClickedOnDeadCell()); //si il a appuyé sur cellule morte alors on la met en morte ---> est-ce que on peut le faire dans la vue ? non car logique ?
+                        if(cellConfigurationView.isClickedOnHeatCell()){//si on a click sur sc alors on la definit comme sc et on met a jour sa temp
+                            cell.setDiffuseHeat(cellConfigurationView.isClickedOnHeatCell());//si deja sc le redit mais alz pas grave... sinon juste if pour sa temp
+                            cell.setTemperature(cellConfigurationView.getChoiceTemperature());
+                        }*
+                        System.out.println("FGdgsgf");
+                        CellConfigurationView.closeWindow(); //une fois les données enregistrées, on ferme la popupc
+                    });*///////////Fonctionne pas 
                 });
+                System.out.println("av calc");;
+                cell.calculateCellTemperature(ADJACENT_ITEMS_MATRIX, outsideTemperature, row, col,cellMap);
                 if(!cell.isCellDead()){
-                    cell.calculateCellTemperature(ADJACENT_ITEMS_MATRIX, outsideTemperature, row, col,cellMap);
+                    System.out.println("dans if cell.dead");
                     allAliveCellsTemperature+=cell.getTemperature();
                 }
             }
