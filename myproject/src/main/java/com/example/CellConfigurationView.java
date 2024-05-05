@@ -80,7 +80,7 @@ public class CellConfigurationView{
 
 
         defineAsDeadCellCheckbox.setOnAction(event -> {
-            if (defineAsDeadCellCheckbox.isSelected()) {
+            if (defineAsDeadCellCheckbox.isSelected()) { //si checkbox sélectionné, l'autre n'est pas sélectionnable
                 defineAsHeatCellCheckbox.setDisable(true);
                 clickedOnHeatCell=false;
                 clickedOnDeadCell=true;
@@ -106,14 +106,15 @@ public class CellConfigurationView{
             choiceTemperature=newValue;
         });
         
+        //attention logique cote modele ?
         submitButton.setOnAction(e-> { //si le formulaire a été validé on ferme la vue, ok de le mettre ici car c'est de la logique mais côté vue   
             cell.setDead(clickedOnDeadCell);
             if(clickedOnHeatCell){//si on a click sur sc alors on la definit comme sc et on met a jour sa temp
                 cell.setDiffuseHeat(clickedOnHeatCell);//si deja sc le redit mais alz pas grave... sinon juste if pour sa temp
                 cell.setTemperature(choiceTemperature);
             }
-            System.out.println(cell.isCellDead());
             window.close();
+            
         });
 
         Scene scene = new Scene(configurationLayout);

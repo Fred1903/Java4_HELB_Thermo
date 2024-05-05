@@ -48,17 +48,22 @@ public class ThermoController implements IThermoObservable, ICellObservable {
     private HashMap<String,Cell> cellMap = new HashMap<String,Cell>();
 
     private final String exteriorTemperatureFile = "src/main/java/com/example/simul.data.txt" ;
+    private String currentStrategy;
 
     private CellFactory cellFactory;
 
     private ICellObserver cellObserver;
     private IThermoObserver thermoObserver;
 
+    private HeatCellStrategy heatCellStrategy;
+
     private ExteriorTemperatureParser exteriorTemperatureParser;
     private static int[][] startHeatSources; //on ne peut pas mettre en final ici car alors on ne pourra pas initialisée par la suite
     private final int [][] ADJACENT_ITEMS_MATRIX = {{-1,0},{-1,-1},{-1,1},{0,-1},{0,1},{1,0},{1,1},{1,-1}} ; //a gauche row et a droite col
     private final int ROW_POSITION_ADJACENT_ITEMS_MATRIX = 0;
     private final int COL_POSITION_ADJACENT_ITEMS_MATRIX = 1;
+
+    Log log = new Log();
     
 
     public ThermoController(Stage primaryStage){
@@ -75,6 +80,10 @@ public class ThermoController implements IThermoObservable, ICellObservable {
             };
         }
         setActions();
+
+        primaryStage.setOnCloseRequest(e ->{ //quand on ferme l'app on créé le fichier log
+            log.createLogFile(); 
+        });
     }
 
     @Override
@@ -203,6 +212,7 @@ public class ThermoController implements IThermoObservable, ICellObservable {
 
     private void setActions() {
         exteriorTemperatureParser=new ExteriorTemperatureParser(exteriorTemperatureFile);
+
         attachCellObserver(thermoView);
         attach(thermoView);//on met la vue comme observer
 
@@ -212,8 +222,7 @@ public class ThermoController implements IThermoObservable, ICellObservable {
             if(!isSystemPlaying)startTimer(); //si on a déjà appuyé sur play, alors re-appuyé sur play n'aura pas d'effets
         });
         thermoView.getPauseButton().setOnAction(e -> {
-            timeline.pause();
-            isSystemPlaying=false;
+            pauseSystem();
         });
         thermoView.getResetButton().setOnAction(e -> {
             timeline.stop();
@@ -224,14 +233,21 @@ public class ThermoController implements IThermoObservable, ICellObservable {
         });
     }
 
+    private void pauseSystem(){
+        timeline.pause();
+        isSystemPlaying=false;
+    }
+
 
     private void startTimer() {
         isSystemPlaying=true;
         Duration duration = Duration.seconds(1);
         EventHandler<ActionEvent> eventHandler = e -> {
             incrementTime(); //toutes les secondes on incrémente le temps
-            ExteriorTemperature ext = exteriorTemperatureParser.getNexExteriorTemperature();
-            calculate();
+            calculate(); 
+            currentStrategy=thermoView.getHeatMode(); //on recup a chaque fois le mode --> a voir si ya pas une meilleure option ?
+            if(currentStrategy.equals("Manual Mode"))heatCellStrategy=new ManualStrategy();
+            log.addLog(numberSeconds,outsideTemperature,averageTemperature); //ajout a chaque seconde des infos pour le log
         };
         keyFrame = new KeyFrame(duration, eventHandler);
         timeline = new Timeline(keyFrame);
@@ -239,9 +255,11 @@ public class ThermoController implements IThermoObservable, ICellObservable {
         timeline.play();
     }    
 
-    private void calculate(){ //Calcule temperature pour chaque case et regarde si source chaleur a été activé/desactive
+    private void calculate(){ //Calcule temperature pour chaque case et regarde si source chaleur a été activé/desactive et fait moyenne
         ExteriorTemperature exteriorTemperature = exteriorTemperatureParser.getNexExteriorTemperature();
         outsideTemperature = exteriorTemperature.getExteriorTemperature(); 
+        ////////////ATTENTIONNNNNNNNNNNNNN PREND QUE 1 VALEUR SUR 2 ????????????
+        System.out.println("outs temp:"+outsideTemperature);
         double allAliveCellsTemperature=0;
         for (int row = 0; row < NUMBER_ROWS; row++) {
             for (int col = 0; col < NUMBER_COLUMNS; col++) {
@@ -249,10 +267,8 @@ public class ThermoController implements IThermoObservable, ICellObservable {
                 final int colCopy = col;
                 Cell cell = cellMap.get(getCellId(row, col));
                 if(cell.isHeatCell()){ //On doit mettre ce if avant l'autre car dans l'autre if a la fin du calculateCellTemp ya un notify pour la vue
-                    System.out.println("dans if cell.isheat"); 
                     if(thermoView.getHeatCellButton(getCellId(row, col))!=null){//doit faire ce if car lorsque créer sc, pas encore dans heatCellbtn
                         thermoView.getHeatCellButton(getCellId(row, col)).setOnAction(e -> {//lorsque un click est effectué sur une sc a gauche
-                            System.out.println("dans if cell.isheat setaction");
                             cell.setDiffuseHeat(!cell.isHeatDiffuser());
                         });
                     }   
@@ -260,7 +276,7 @@ public class ThermoController implements IThermoObservable, ICellObservable {
                 }
                 thermoView.getCellButton(getCellId(row, col)).setOnAction(event -> {//click sur une cellule de la grille
                     //il est interdit de mettre en paramètre une valeur qui n'est pas finale et qui s'incrémente à chaque fois  --> faire une copie en final
-                    System.out.println("avant display");
+                    //pauseSystem();  --> enlever des commentaires une fois que setAction du form fonctionne
                     CellConfigurationView.display(cell,rowCopy,colCopy);
                     /*CellConfigurationView.getSubmitButton().setOnAction(e -> {//lors de la validation du formulaire 
                         /*cell.setDead(cellConfigurationView.isClickedOnDeadCell()); //si il a appuyé sur cellule morte alors on la met en morte ---> est-ce que on peut le faire dans la vue ? non car logique ?
@@ -272,10 +288,9 @@ public class ThermoController implements IThermoObservable, ICellObservable {
                         CellConfigurationView.closeWindow(); //une fois les données enregistrées, on ferme la popupc
                     });*///////////Fonctionne pas 
                 });
-                System.out.println("av calc");;
+                
                 cell.calculateCellTemperature(ADJACENT_ITEMS_MATRIX, outsideTemperature, row, col,cellMap);
                 if(!cell.isCellDead()){
-                    System.out.println("dans if cell.dead");
                     allAliveCellsTemperature+=cell.getTemperature();
                 }
             }

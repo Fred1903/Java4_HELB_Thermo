@@ -1,4 +1,5 @@
 com/example/Cell.class
+com/example/Log.class
 com/example/CellFactory.class
 com/example/IThermoObserver.class
 com/example/ExteriorTemperatureParser.class
@@ -7,7 +8,10 @@ com/example/ICellObservable.class
 com/example/Cost.class
 com/example/ExteriorTemperature.class
 com/example/ICellObserver.class
+com/example/ManualStrategy.class
 com/example/CellConfigurationView.class
 com/example/ThermoView.class
 com/example/IThermoObservable.class
 com/example/Main.class
+com/example/SuccessiveStrategy.class
+com/example/HeatCellStrategy.class

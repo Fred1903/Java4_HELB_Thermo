@@ -7,7 +7,7 @@ public class Main extends Application {
  
     @Override
     public void start(Stage primaryStage) throws Exception {
-        ThermoController controller = new ThermoController(primaryStage);
+        ThermoController controller = new ThermoController(primaryStage);   
     }
     
     public static void main(String[] args) {

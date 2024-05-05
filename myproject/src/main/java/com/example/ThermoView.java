@@ -6,11 +6,13 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.Parent;
 import javafx.stage.Stage;
@@ -37,6 +39,10 @@ public class ThermoView implements IThermoObserver, ICellObserver {
 
     private final static String DEAD_CELL_COLOR ="0,0,0"; //Couleur noir en rgb  
     private final static String UNACTIVE_HEAT_CELL_COLOR = "186,186,186"; //Couleur grise
+    private final String MANUAL_MODE_STRING = "Manual Mode";
+    private final String TARGET_MODE_STRING = "Target Mode";
+
+    private String selectedHeatMode;
 
     private int counterHeatCells =0 ;
 
@@ -50,7 +56,7 @@ public class ThermoView implements IThermoObserver, ICellObserver {
     private Button costButton = createNewButton("€",WIDTH_SYSTEM_ATTRIBUTES_BUTTONS,HEIGHT_TOP_ATTRIBUTES_BUTTONS);
     private Button exteriorTemperatureButton = createNewButton("T°ext.",WIDTH_SYSTEM_ATTRIBUTES_BUTTONS,HEIGHT_TOP_ATTRIBUTES_BUTTONS);
     private Button averageTemperatureButton = createNewButton("T°moy.",WIDTH_SYSTEM_ATTRIBUTES_BUTTONS,HEIGHT_TOP_ATTRIBUTES_BUTTONS);
-    private Button heatModeButton = createNewButton("Chauffe mode ▽",WIDTH_SYSTEM_ATTRIBUTES_BUTTONS,HEIGHT_TOP_ATTRIBUTES_BUTTONS);
+    private ComboBox<String> heatModeCombobox = new ComboBox<String>();
     private Button startButton = createNewButton("▷",WIDTH_HEIGHT_TIME_SETTINGS_BUTTONS,WIDTH_HEIGHT_TIME_SETTINGS_BUTTONS);
     private Button pauseButton=createNewButton("▐▐ ",WIDTH_HEIGHT_TIME_SETTINGS_BUTTONS,WIDTH_HEIGHT_TIME_SETTINGS_BUTTONS);
     private Button resetButton=createNewButton("♻",WIDTH_HEIGHT_TIME_SETTINGS_BUTTONS,WIDTH_HEIGHT_TIME_SETTINGS_BUTTONS);
@@ -80,16 +86,22 @@ public class ThermoView implements IThermoObserver, ICellObserver {
             initializeUI();
         }////////////Attention max --> dans controller
         else{
-            VBox errorMessageVbox = new VBox();
-            Label labelError = new Label("La configuration est incorrecte, il doit y avoir minimum 3 lignes et colonnes, et maximum 13 lignes et colonnes");
-            errorMessageVbox.getChildren().add(labelError);
-            createScene(errorMessageVbox);
+            StackPane errorMessageStackPane = new StackPane(); //J'utilise stackpane car va mettre le texte direct au centre de la page
+            Label labelError = new Label("La configuration est incorrecte, il doit y avoir minimum"+ThermoController.getMINIMUM_NUMBER_ROWS_AND_COLUMNS()+
+            " lignes et colonnes, et maximum"+ThermoController.getMAXIMUM_NUMBER_ROWS_AND_COLUMNS()+" lignes et colonnes");
+            labelError.setStyle("-fx-font-size: 24px; -fx-text-fill: red;");
+            errorMessageStackPane.getChildren().add(labelError);
+            createScene(errorMessageStackPane);
         }
-        
     }
 
 
     private void initializeUI() {
+        heatModeCombobox.getItems().add(MANUAL_MODE_STRING);
+        heatModeCombobox.getItems().add(TARGET_MODE_STRING);
+        heatModeCombobox.getSelectionModel().select(MANUAL_MODE_STRING);  // selectionne lE mode manuel par défaut pour affichage
+        selectedHeatMode=MANUAL_MODE_STRING; //selectionne mode manual par defaut comme valeur
+
         //Ajout d'une scroll bar pour les sources de chaleurs
         ScrollPane scrollPaneHeatSources = new ScrollPane();
         scrollPaneHeatSources.setContent(vboxHeatCellsInsideScrollPane);
@@ -100,7 +112,7 @@ public class ThermoView implements IThermoObserver, ICellObserver {
 
         leftVboxHeatSources.getChildren().add(scrollPaneHeatSources);
         
-        topHboxAttributes.getChildren().addAll(timeButton,costButton,exteriorTemperatureButton,averageTemperatureButton,heatModeButton);
+        topHboxAttributes.getChildren().addAll(timeButton,costButton,exteriorTemperatureButton,averageTemperatureButton,heatModeCombobox);
         timeSettingsHBox.getChildren().addAll(startButton,pauseButton,resetButton);
 
 
@@ -167,6 +179,13 @@ public class ThermoView implements IThermoObserver, ICellObserver {
         stage.show();
     }
 
+    public String getHeatMode(){
+        heatModeCombobox.valueProperty().addListener((observable, oldValue, newValue) -> {
+            selectedHeatMode=newValue;//=valeur selectionné dans combobox
+        });
+        return selectedHeatMode;
+    }
+
     @Override//Pour mettre à jour le temps affiché
     public void updateSystemAttributes(int time, double averageTemperature, double exteriorTemperature) {
         timeButton.setText(""+time);
@@ -176,9 +195,6 @@ public class ThermoView implements IThermoObserver, ICellObserver {
 
     @Override//Pour changer la couleur des cellules vivantes et  mortes
     public void updateCellColor(int row, int col, boolean isHeatCell, boolean isHeatDiffuser, double cellTemperature) { 
-        if(row==0 && col==2){
-            System.out.println("heat cell:"+isHeatCell+" cellTemp:"+cellTemperature);
-        }
         cellId = ThermoController.getCellId(row, col);
         Button buttonToChangeColor =cellMap.get(cellId);
         String stringToAddForHeatCells="";
@@ -200,6 +216,7 @@ public class ThermoView implements IThermoObserver, ICellObserver {
             buttonToChangeColor.setText(stringToAddForHeatCells+String.format("%.1f", cellTemperature)); //1 seul chiffre après la virgule
         }
         else{
+            buttonToChangeColor.setText("");//si c'etait une cell avant et que on l'a changé en morte, on ne veut plus voir sa temp affichée
             color ="-fx-background-color: rgb("+DEAD_CELL_COLOR+");"; //sinon si cellule morte en noir
         }
         buttonToChangeColor.setStyle(color); //pr toutes les cellules on met une couleur
@@ -233,7 +250,7 @@ public class ThermoView implements IThermoObserver, ICellObserver {
         }
         else{ //sinon rouge plus foncé
             for(int i=ThermoController.getEstimatedMedianTemperature();i<=temperature;i++){
-                rgbRedValue-=6; //foncé ok
+                rgbRedValue-=5; //foncé ok
             }
         }
         return "-fx-background-color: rgb("+rgbRedValue+","+rgbGreenValue+","+rgbBlueValue+");";
