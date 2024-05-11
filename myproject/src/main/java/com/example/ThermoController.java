@@ -190,23 +190,24 @@ public class ThermoController implements IThermoObservable {
                 thermoView.getCellButton(getCellId(row, col)).setOnAction(event -> {//click sur une cellule de la grille
                     //il est interdit de mettre en paramètre une valeur qui n'est pas finale et qui s'incrémente à chaque fois  --> faire une copie en final
                     //pauseSystem();  //--> enlever des commentaires une fois que setAction du form fonctionne
-                    cellConfigurationView.display(cell,rowCopy,colCopy,cell.isHeatCell(),cell.isCellDead());
+                    cellConfigurationView.display(rowCopy,colCopy,cell.isHeatCell(),cell.isCellDead());
                 });
+                
             }
         }
-        ///////////////fonctionne pas dans le for et fonctionne pas en dehors
+        //Fonctionne ici mais pas dans le for car la boucle for continue et on aura pas les bonnes valeurs pour row et col donc attribuera ce qu'on a fait a la derniere valeur
         //si on enleve ou ajoute cellule morte, faut changer le numberAlivesCells
-        /*if(cellConfigurationView.getSubmitButton()!=null){//Il faut vérifier que c'est pas null sinon nullpointerexception
-            cellConfigurationView.getSubmitButton().setOnAction(e -> {//lors de la validation du formulaire
-                Cell cell = cellMap.get(cellConfigurationView.getCellId());
-                cell.setDead(cellConfigurationView.isClickedOnDeadCell()); //si il a appuyé sur cellule morte alors on la met en morte ---> est-ce que on peut le faire dans la vue ? non car logique ?
-                if(cellConfigurationView.isClickedOnHeatCell()){//si on a click sur sc alors on la definit comme sc et on met a jour sa temp
-                    cell.setDiffuseHeat(cellConfigurationView.isClickedOnHeatCell());//si deja sc le redit mais alz pas grave... sinon juste if pour sa temp
-                    cell.setTemperature(cellConfigurationView.getChoiceTemperature());
-                }
-                cellConfigurationView.closeWindow(); //une fois les données enregistrées, on ferme la popupc
-            });
-        }*/ /////////Fonctionne pas
+        if(cellConfigurationView.getSubmitButton()!=null){//Il faut vérifier que c'est pas null sinon nullpointerexception);
+        cellConfigurationView.getSubmitButton().setOnAction(e -> {//lors de la validation du formulaire
+            Cell cell = cellMap.get(cellConfigurationView.getCellId());
+            cell.setDead(cellConfigurationView.isClickedOnDeadCell()); //si il a appuyé sur cellule morte alors on la met en morte ---> est-ce que on peut le faire dans la vue ? non car logique ?
+            if(cellConfigurationView.isClickedOnHeatCell()){//si on a click sur sc alors on la definit comme sc et on met a jour sa temp
+                cell.setDiffuseHeat(cellConfigurationView.isClickedOnHeatCell());//si deja sc le redit mais alz pas grave... sinon juste if pour sa temp
+                cell.setTemperature(cellConfigurationView.getChoiceTemperature());
+            }
+            cellConfigurationView.closeWindow(); //une fois les données enregistrées, on ferme la popupc
+        });
+    } 
     }
 
     private void pauseSystem(){

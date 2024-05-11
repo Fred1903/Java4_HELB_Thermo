@@ -28,8 +28,12 @@ public class CellConfigurationView{
     private int row;
     private int col;
 
+    public CellConfigurationView(){
+        submitButton = new Button("Valider"); ///////////OBLIGER de l'instancier dans le ctor et pas dans display car sinon ca ne fonctionnera pas !!!!!!!!!!!
+    }
+
     //Cell a enlever car apres va faire logique cote modele on veut pas
-    public void display(Cell cell, int row, int col, boolean isHeatCell, boolean isDeadCell){ //Faut laisser en ou pas ?
+    public void display(int row, int col, boolean isHeatCell, boolean isDeadCell){ //Faut laisser en ou pas ?
         this.row=row;
         this.col=col;
         //choiceTemperature = cell.getTemperature(); //On met la temperature a retourner de base=
@@ -53,7 +57,7 @@ public class CellConfigurationView{
         temperatureCombobox.setVisibleRowCount(10); //Fait que on voit que 10 nombre a la fois et pas tout
         temperatureCombobox.getSelectionModel().select(100/2);  // selectionne la valeur du milieu
         choiceTemperature=100/2;//on met la temp a celle par defaut, au cas ou elle n'est pas changée
-        submitButton = new Button("Valider");
+        
         submitButton.setStyle("-fx-border-color: black; -fx-border-width: 2px; -fx-padding:30px; -fx-border-radius:15px;");
 
         CheckBox defineAsDeadCellCheckbox = new CheckBox();
@@ -110,16 +114,6 @@ public class CellConfigurationView{
             System.out.println("Valeur sélectionnée : " + newValue);
             choiceTemperature=newValue;
         });
-        
-        //attention logique cote modele peut pas etre ici !!!!!!!!!!!!!!!!!!!!!!!!
-        submitButton.setOnAction(e-> { //si le formulaire a été validé on ferme la vue, ok de le mettre ici car c'est de la logique mais côté vue   
-            cell.setDead(clickedOnDeadCell);
-            if(clickedOnHeatCell){//si on a click sur sc alors on la definit comme sc et on met a jour sa temp
-                cell.setDiffuseHeat(clickedOnHeatCell);//si deja sc le redit mais alz pas grave... sinon juste if pour sa temp
-                cell.setTemperature(choiceTemperature);
-            }
-            window.close();
-        })
 
         Scene scene = new Scene(configurationLayout);
         window.setScene(scene);
