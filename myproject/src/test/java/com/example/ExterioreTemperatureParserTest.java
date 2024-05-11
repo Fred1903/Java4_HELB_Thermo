@@ -5,6 +5,7 @@ import java.util.Scanner;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 //import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -28,18 +29,22 @@ public class ExterioreTemperatureParserTest {
             valueInString = correctValue;
             value = Integer.valueOf(correctValue);
             scanner = new Scanner(valueInString);
-            exteriorTemperatureParser.checkValue(scanner);
-            assertEquals(value, exteriorTemperatureParser.getExteriorTemperaturesList().get(cpt++).getExteriorTemperature()); //0 car on a ajt que 1 element     
+            //exteriorTemperatureParser.checkValue(scanner);
+            assertTrue(exteriorTemperatureParser.checkValue(scanner));
+            //assertEquals(value, exteriorTemperatureParser.getExteriorTemperaturesList().get(cpt++).getExteriorTemperature()); //0 car on a ajt que 1 element     
         } 
         
     }
 
+    //REMARQUE PROF : tableau pour tester plusieurs valeurs ok, par contre changer checkValue pour que renvoie un bool
+    //TESTER LE BOOL RENVOYÉ !!!!!!!!!!!!!!
     @Test
     public void checkValueShouldNotAddNewExteriorTemperatureToExteriorTemperatureList(){
         valueInString = "7,5";
         scanner = new Scanner(valueInString);
-        exteriorTemperatureParser.checkValue(scanner);
-        assertTrue(exteriorTemperatureParser.getExteriorTemperaturesList().isEmpty()); //si vide veut dire que ne l'a pas ajouté
+        assertFalse(exteriorTemperatureParser.checkValue(scanner));
+        //exteriorTemperatureParser.checkValue(scanner);
+        //assertTrue(exteriorTemperatureParser.getExteriorTemperaturesList().isEmpty()); //si vide veut dire que ne l'a pas ajouté
     }
     
  

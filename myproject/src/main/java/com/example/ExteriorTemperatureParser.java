@@ -25,11 +25,7 @@ public class ExteriorTemperatureParser {
         //System.out.println("currIndex+1<maxIndex :"+((currentIndex+one)<maxIndex));
         if(hasNextTemperature() && (currentIndex+one)<maxIndex){
             ExteriorTemperature temp=exteriorTemperaturesList.get(currentIndex);
-            System.out.println("temp :"+temp.getExteriorTemperature());
-            System.out.println("if index:"+currentIndex);
             currentIndex++;
-            
-            //currentIndex++;
             return temp;}  //affiche 0 2 4 6 et index++ affiche 0 1 3 5 ..
         return exteriorTemperaturesList.get(currentIndex);
     }
@@ -49,6 +45,10 @@ public class ExteriorTemperatureParser {
                 String line = scanner.nextLine();
                 try(Scanner scannerOfLine = new Scanner(line)){ //dans ce scanner on va avoir la valeur de chaque ligne en particulier
                     checkValue(scannerOfLine);
+                        //int temperature = scannerOfLine.nextInt();
+                        //ExteriorTemperature exteriorTemperature = new ExteriorTemperature(scannerOfLine.nextInt());
+                        //exteriorTemperaturesList.add(exteriorTemperature); //si ok alors on ajoute a notre liste de températures
+                    
                     /*if(scannerOfLine.hasNextInt()){ //si la prochaine valeur est un int alors on rentre dans le if 
                         int temperature = scannerOfLine.nextInt();
                         if(temperature>=MINIMUM_EXTERIOR_TEMPERATURE && temperature <= MAXIMUM_EXTERIOR_TEMPERATURE){
@@ -67,13 +67,15 @@ public class ExteriorTemperatureParser {
         }
     }
 
-    public void checkValue(Scanner scannerOfLine){
+    public boolean checkValue(Scanner scannerOfLine){
         if(scannerOfLine.hasNextInt()){ //si la prochaine valeur est un int alors on rentre dans le if 
             int temperature = scannerOfLine.nextInt();
             if(temperature>=MINIMUM_EXTERIOR_TEMPERATURE && temperature <= MAXIMUM_EXTERIOR_TEMPERATURE){
                 ExteriorTemperature exteriorTemperature = new ExteriorTemperature(temperature);
                 exteriorTemperaturesList.add(exteriorTemperature); //si ok alors on ajoute a notre liste de températures
+                return true;
             }
         }
+        return false;
     }
 }

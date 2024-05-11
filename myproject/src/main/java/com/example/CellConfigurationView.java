@@ -1,6 +1,5 @@
 package com.example;
 
-
 import javafx.scene.Scene;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -11,22 +10,28 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 
-import com.example.Cell;
+
 
 import javafx.geometry.Pos;
 
 public class CellConfigurationView{
-    private static final int minWidth = 350;
-    private static final int minHeight = 450;
+    private final int minWidth = 350;
+    private final int minHeight = 450;
     
-    private static Button submitButton;
-    private static boolean clickedOnDeadCell=false;
-    private static boolean clickedOnHeatCell=false;
-    private static int choiceTemperature;
+    private Button submitButton;
+    private boolean clickedOnDeadCell=false;
+    private boolean clickedOnHeatCell=false;
+    private int choiceTemperature;
 
-    private static Stage window;
+    private Stage window;
 
-    public static void display(Cell cell,int row, int col){ //Faut laisser en static ou pas ?
+    private int row;
+    private int col;
+
+    //Cell a enlever car apres va faire logique cote modele on veut pas
+    public void display(Cell cell, int row, int col, boolean isHeatCell, boolean isDeadCell){ //Faut laisser en ou pas ?
+        this.row=row;
+        this.col=col;
         //choiceTemperature = cell.getTemperature(); //On met la temperature a retourner de base=
 
         window = new Stage();        
@@ -69,11 +74,11 @@ public class CellConfigurationView{
         configurationLayout.getChildren().addAll(cellPositionLabel,defineAsDeadCellHbox,defineAsHeatCellHbox,defineTemperatureHBox,submitButton);
         configurationLayout.setAlignment(Pos.CENTER);
 
-        if(cell.isHeatCell()){//si sc, alors la case sc sera cochée, si on la déchoche ne sera plus sc
+        if(isHeatCell){//si sc, alors la case sc sera cochée, si on la déchoche ne sera plus sc
             defineAsHeatCellCheckbox.setSelected(true);
             defineAsDeadCellCheckbox.setDisable(true);
         }
-        if(cell.isCellDead()){//si morte, alors la case morte sera cochée, si on la déchoche ne sera plus morte
+        if(isDeadCell){//si morte, alors la case morte sera cochée, si on la déchoche ne sera plus morte
             defineAsDeadCellCheckbox.setSelected(true);
             defineAsHeatCellCheckbox.setDisable(true);
         }
@@ -106,7 +111,7 @@ public class CellConfigurationView{
             choiceTemperature=newValue;
         });
         
-        //attention logique cote modele ?
+        //attention logique cote modele peut pas etre ici !!!!!!!!!!!!!!!!!!!!!!!!
         submitButton.setOnAction(e-> { //si le formulaire a été validé on ferme la vue, ok de le mettre ici car c'est de la logique mais côté vue   
             cell.setDead(clickedOnDeadCell);
             if(clickedOnHeatCell){//si on a click sur sc alors on la definit comme sc et on met a jour sa temp
@@ -114,18 +119,18 @@ public class CellConfigurationView{
                 cell.setTemperature(choiceTemperature);
             }
             window.close();
-            
-        });
+        })
 
         Scene scene = new Scene(configurationLayout);
         window.setScene(scene);
         window.showAndWait();  
-        
-        
     }
 
-    public static Button getSubmitButton(){
-        System.out.println("get sub btn");
+    public String getCellId(){
+        return ThermoController.getCellId(row, col);
+    }
+
+    public Button getSubmitButton(){
         return submitButton;
     }
 
@@ -141,15 +146,13 @@ public class CellConfigurationView{
         return choiceTemperature;
     }
 
-    private static Label createLabel(String text){
+    private Label createLabel(String text){
         Label label = new Label(text);
         label.setStyle("-fx-border-color: black; -fx-border-width: 2px; -fx-padding:30px; -fx-border-radius:15px; -fx-margin:30px");
         return label;
     }
 
-    public static void closeWindow(){
+    public void closeWindow(){
         window.close();
     }
-
-
 }

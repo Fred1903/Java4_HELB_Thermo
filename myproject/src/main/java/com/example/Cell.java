@@ -2,7 +2,6 @@ package com.example;
 
 import java.util.HashMap;
 
-
 public class Cell implements ICellObservable{
     private double temperature; 
 
@@ -13,6 +12,19 @@ public class Cell implements ICellObservable{
 
     ICellObserver cellObserver;
 
+    public Cell(){}
+
+    public Cell(boolean diffuseHeat, boolean isDead, double temperature){
+        this.diffuseHeat=diffuseHeat;
+        this.isDead=isDead;
+        this.temperature=temperature;
+
+        if(this.diffuseHeat){ 
+            setIsHeatCell(diffuseHeat); //si une cellule diffuse de la chaleur (elle est active), ce sera doffice une source de chaleur
+            temperature=ThermoController.getHeatCellStartTemperature() ; //quand on réactive une source de chaleur on remet ca temperature a celle de base
+        }
+        
+    }
 
     public void calculateCellTemperature(int[][] ADJACENT_ITEMS_MATRIX, double outsideTemperature,int row, int col, HashMap<String, Cell> cellMap){
             if(!diffuseHeat && !isDead){
@@ -52,12 +64,9 @@ public class Cell implements ICellObservable{
         temperature = totalTemperature/totalNumberInfluences; //temperature = moyenne de tt les temperatures adjacentes + sa propre temp.
     }
 
-
     public double getTemperature() {
         return temperature;
     }
-
-
 
     public void setTemperature(double temperature) {
         this.temperature = temperature;
@@ -86,8 +95,6 @@ public class Cell implements ICellObservable{
     public void setIsHeatCell(boolean heatCell){
         this.heatCell=heatCell;
     }
-
-
 
     public void setDead(boolean isDead) {
         this.isDead = isDead;
