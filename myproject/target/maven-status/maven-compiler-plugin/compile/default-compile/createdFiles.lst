@@ -1,5 +1,6 @@
 com/example/Cell.class
 com/example/Log.class
+com/example/TargetStrategy.class
 com/example/CellFactory.class
 com/example/IThermoObserver.class
 com/example/ExteriorTemperatureParser.class
@@ -13,5 +14,4 @@ com/example/CellConfigurationView.class
 com/example/ThermoView.class
 com/example/IThermoObservable.class
 com/example/Main.class
-com/example/SuccessiveStrategy.class
 com/example/HeatCellStrategy.class

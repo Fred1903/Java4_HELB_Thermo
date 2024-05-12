@@ -186,6 +186,10 @@ public class ThermoView implements IThermoObserver, ICellObserver {
         return selectedHeatMode;
     }
 
+    public ComboBox<String> getHeatModeCombobox(){
+        return heatModeCombobox;
+    }
+
     @Override//Pour mettre à jour le temps affiché
     public void updateSystemAttributes(int time, double averageTemperature, double exteriorTemperature) {
         timeButton.setText(""+time);
@@ -194,12 +198,13 @@ public class ThermoView implements IThermoObserver, ICellObserver {
     }
 
     @Override//Pour changer la couleur des cellules vivantes et  mortes
-    public void updateCellColor(int row, int col, boolean isHeatCell, boolean isHeatDiffuser, double cellTemperature) { 
+    //j'aurais pu ne pas mettre de boolean is deadcell et regarder si cellTemperature = -500 mais c'est pas logique, booleen mieux selon moi
+    public void updateCellColor(int row, int col, boolean isHeatCell, boolean isHeatDiffuser, boolean isDeadCell, double cellTemperature) { 
         cellId = ThermoController.getCellId(row, col);
         Button buttonToChangeColor =cellMap.get(cellId);
         String stringToAddForHeatCells="";
         String color;
-        if(cellTemperature!=ThermoController.getDeadCellNoTemperature()){//ok ? ou ajt en parametre bool isDeadCell
+        if(!isDeadCell){//ok ? ou ajt en parametre bool isDeadCell
             if(isHeatCell){
                 if(!isHeatDiffuser){
                     color = "-fx-background-color: rgb("+UNACTIVE_HEAT_CELL_COLOR+");"; //En gris si la source de chaleur est désactivée

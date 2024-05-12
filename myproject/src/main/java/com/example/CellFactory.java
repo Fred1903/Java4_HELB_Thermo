@@ -29,13 +29,14 @@ public class CellFactory { /////////est-ce que factory doit etre en static ??
 
     private int[][] heatSources; //ThermoController.getStartHeatSources();
     
+    private int firstTemperature;
 
     public void setHeatSources(int[][]heatSources){
         this.heatSources=heatSources;
     }
-    /*public CellFactory(Cell cell){
-        this.cell = cell;
-    }*/
+    public CellFactory(int firstTemperature){
+        this.firstTemperature = firstTemperature;
+    }
 
     //Regarde si la case qu'on a donné en paramètre est la case du milieu
     public boolean checkIfMiddle(int row, int col){
@@ -60,16 +61,16 @@ public class CellFactory { /////////est-ce que factory doit etre en static ??
                     //cellFactory= new CellFactory(cell);
                     if(isCellDead(row,col)){ //si cellule morte 
                         //-500 a enlever pour utiliser juste le boolean
-                        cell=new Cell(false,true,-500);  //A LA PLACE DE 0 on doit mettre la 1ere temperature du fichier
+                        cell=new Cell(false,true,ThermoController.getDeadCellNoTemperature());  //A LA PLACE DE 0 on doit mettre la 1ere temperature du fichier
                     }
                     else{
-                        cell=new Cell(false,false,0); //cas d'une cellule normale 
+                        cell=new Cell(false,false,firstTemperature); //cas d'une cellule normale 
                     }
                 }
                 cell.attachCellObserver(thermoView); //a faire dans le ctrl ?
                 String cellId = ThermoController.getCellId(row,col);
                 cellMap.put(cellId,cell); //attention put pas add pour hashmap
-                cell.NotifyThermoView(row, col,cell.isHeatCell(), cell.isHeatDiffuser(), cell.getTemperature()); //on notifie la temperature de la cellule
+                cell.NotifyThermoView(row, col,cell.isHeatCell(), cell.isHeatDiffuser(), cell.isCellDead(), cell.getTemperature()); //on notifie la temperature de la cellule
             }
         }
     }

@@ -13,6 +13,7 @@ public class ExteriorTemperatureParser {
     private final int one = 1;
     private final static int MINIMUM_EXTERIOR_TEMPERATURE = 0;
     private final static int MAXIMUM_EXTERIOR_TEMPERATURE = 40;
+    private int firstTemperature;
     
     public ExteriorTemperatureParser(String filename){
         parse(filename);
@@ -71,11 +72,16 @@ public class ExteriorTemperatureParser {
         if(scannerOfLine.hasNextInt()){ //si la prochaine valeur est un int alors on rentre dans le if 
             int temperature = scannerOfLine.nextInt();
             if(temperature>=MINIMUM_EXTERIOR_TEMPERATURE && temperature <= MAXIMUM_EXTERIOR_TEMPERATURE){
+                if(exteriorTemperaturesList.isEmpty())firstTemperature=temperature;
                 ExteriorTemperature exteriorTemperature = new ExteriorTemperature(temperature);
                 exteriorTemperaturesList.add(exteriorTemperature); //si ok alors on ajoute a notre liste de températures
                 return true;
             }
         }
         return false;
+    }
+
+    public int getFirstTemperature(){
+        return firstTemperature;
     }
 }

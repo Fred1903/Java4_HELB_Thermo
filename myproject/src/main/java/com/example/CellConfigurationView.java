@@ -95,6 +95,7 @@ public class CellConfigurationView{
                 clickedOnDeadCell=true;
             }
             else{
+                clickedOnDeadCell=false; //dans le cas ou aucune des deux cases est cochés
                 defineAsHeatCellCheckbox.setDisable(false);
             }
         });
@@ -106,6 +107,7 @@ public class CellConfigurationView{
                 clickedOnDeadCell=false;
             }
             else{
+                clickedOnHeatCell=false; //dans le cas ou aucune des deux cases est cochés
                 defineAsDeadCellCheckbox.setDisable(false);
             }
         });
