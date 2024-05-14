@@ -1,6 +1,5 @@
 package com.example;
 
-public class Cost{
-
+public class DeadCell {
     
 }

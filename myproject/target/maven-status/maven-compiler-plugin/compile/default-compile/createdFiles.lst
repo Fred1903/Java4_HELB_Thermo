@@ -1,13 +1,13 @@
 com/example/Cell.class
+com/example/DeadCell.class
 com/example/Log.class
+com/example/AliveCell.class
 com/example/TargetStrategy.class
 com/example/CellFactory.class
 com/example/IThermoObserver.class
 com/example/ExteriorTemperatureParser.class
 com/example/ThermoController.class
 com/example/ICellObservable.class
-com/example/Cost.class
-com/example/ExteriorTemperature.class
 com/example/ICellObserver.class
 com/example/ManualStrategy.class
 com/example/CellConfigurationView.class

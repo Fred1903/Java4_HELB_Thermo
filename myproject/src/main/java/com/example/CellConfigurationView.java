@@ -10,9 +10,10 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 
-
-
 import javafx.geometry.Pos;
+
+//PROBLEME : Qd SC on appuie sur panneau de config et on laisse comme c est et appuie sur valider ca enleve la sc et met en cell normale...
+
 
 public class CellConfigurationView{
     private final int minWidth = 350;
@@ -113,7 +114,6 @@ public class CellConfigurationView{
         });
 
         temperatureCombobox.valueProperty().addListener((observable, oldValue, newValue) -> {
-            System.out.println("Valeur sélectionnée : " + newValue);
             choiceTemperature=newValue;
         });
 

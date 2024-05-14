@@ -10,9 +10,14 @@ public class Cell implements ICellObservable{
 
     private boolean isDead=false;
 
+    private double averageTemperature;
+
+    private int startHeatTemperatureBeforeDesactivating=-1; //car on pourrait avoir une sc avec temp 0
+    private double heatTemperatureBeforeDesactivating = startHeatTemperatureBeforeDesactivating;
+
     ICellObserver cellObserver;
 
-    public Cell(){}
+    //public Cell(){}
 
     public Cell(boolean isHeatDiffuser, boolean isDead, double temperature){
         this.isHeatDiffuser=isHeatDiffuser;
@@ -72,6 +77,7 @@ public class Cell implements ICellObservable{
         this.temperature = temperature;
     }
 
+
     public boolean isHeatDiffuser() { //Attentions aux noms!!
         return isHeatDiffuser;
     }
@@ -89,7 +95,19 @@ public class Cell implements ICellObservable{
         if(isHeatDiffuser){
             if(isDead)setDead(!isHeatDiffuser);//si c'etait cellule morte alors plus mtn
             setIsHeatCell(isHeatDiffuser); //si une cellule diffuse de la chaleur (elle est active), ce sera doffice une source de chaleur
-            temperature=ThermoController.getHeatCellStartTemperature() ; //quand on réactive une source de chaleur on remet ca temperature a celle de base
+            if(heatTemperatureBeforeDesactivating!=startHeatTemperatureBeforeDesactivating){
+                System.out.println("Heat temp before desac :"+heatTemperatureBeforeDesactivating);
+                temperature = heatTemperatureBeforeDesactivating;
+                System.out.println("set temp if"); //qd je reac sc
+            }
+            else{
+                System.out.println("set temp else");
+                temperature=ThermoController.getHeatCellStartTemperature() ; //quand on réactive une source de chaleur on remet ca temperature a celle de base
+            }
+        }
+        else{
+            heatTemperatureBeforeDesactivating = temperature;
+            System.out.println("Je mets heatTempBefore et il est a :"+heatTemperatureBeforeDesactivating);
         }
     }
 
@@ -110,12 +128,14 @@ public class Cell implements ICellObservable{
             setIsHeatCell(!isDead);
         }
         else{
-            setTemperature(0);//premiere temp du fichier !!!!!
+            setTemperature(averageTemperature);
+            System.out.println("temp ext :"+averageTemperature+" temp cell:"+temperature);
         }
     }
 
 
-    public int updateCell(boolean isClickedOnDeadCell, boolean isClickedOnHeatCell, double choiceTemperature){
+    public int updateCell(boolean isClickedOnDeadCell, boolean isClickedOnHeatCell, double choiceTemperature, double averageTemperature){
+        this.averageTemperature = averageTemperature;
         int numberAliveCellsChanges=0;
         if(isDead){
             if(!isClickedOnDeadCell){

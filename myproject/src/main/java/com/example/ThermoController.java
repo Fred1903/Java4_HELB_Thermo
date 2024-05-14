@@ -66,6 +66,8 @@ public class ThermoController implements IThermoObservable {
     private String selectedHeatMode;
 
     Log log = new Log();
+
+    private HashMap<String,Double> heatCellMap = new HashMap<String,Double>();
     
 
     public ThermoController(Stage primaryStage){
@@ -187,6 +189,7 @@ public class ThermoController implements IThermoObservable {
                     if(currentStrategy.equals("Manual Mode")){
                         if(thermoView.getHeatCellButton(getCellId(row, col))!=null){//doit faire ce if car lorsque créer sc, pas encore dans heatCellbtn
                             thermoView.getHeatCellButton(getCellId(row, col)).setOnAction(e -> {//lorsque un click est effectué sur une sc a gauche
+                                System.out.println("Dans ctrll");
                                 heatCellStrategy.applyStrategy(cell);
                                 //cell.setDiffuseHeat(!cell.isHeatDiffuser());//si diffuseHeat=true alors on le passe a false, si false alors on met true
                             });
@@ -207,7 +210,7 @@ public class ThermoController implements IThermoObservable {
             cellConfigurationView.getSubmitButton().setOnAction(e -> {//lors de la validation du formulaire
                 Cell cell = cellMap.get(cellConfigurationView.getCellId());
                 //va update la cellule en fonction du formulaire dans son modèle et récupérer en meme temps un changement dans nombre cell vivantes
-                numberAliveCells += cell.updateCell(cellConfigurationView.isClickedOnDeadCell(),cellConfigurationView.isClickedOnHeatCell(),cellConfigurationView.getChoiceTemperature());
+                numberAliveCells += cell.updateCell(cellConfigurationView.isClickedOnDeadCell(),cellConfigurationView.isClickedOnHeatCell(),cellConfigurationView.getChoiceTemperature(),averageTemperature);
                 cellConfigurationView.closeWindow(); //une fois les données enregistrées, on ferme la popupc
                 startTimer();
             });
@@ -249,8 +252,8 @@ public class ThermoController implements IThermoObservable {
     ///////// LES SET ON ACTION NE SONT PAS A RECUP TOUTES LES SECONDES !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     private void calculate(){ //Calcule temperature pour chaque case et regarde si source chaleur a été activé/desactive et fait moyenne
        ///a voir si on peut pas mettre la premiere ligne dans la classe extTemp
-        ExteriorTemperature exteriorTemperature = exteriorTemperatureParser.getNexExteriorTemperature();
-        outsideTemperature = exteriorTemperature.getExteriorTemperature(); 
+        
+        outsideTemperature = exteriorTemperatureParser.getNexExteriorTemperature(); 
         double allAliveCellsTemperature=0;
         for (int row = 0; row < NUMBER_ROWS; row++) {
             for (int col = 0; col < NUMBER_COLUMNS; col++) {

@@ -11,6 +11,7 @@ class ManualStrategy implements HeatCellStrategy{//attention on ne peut pas mett
     @Override
     public void applyStrategy(Cell cell) {
         cell.setHeatDiffuser(!cell.isHeatDiffuser());
+        System.out.println("Dans strategie");
     }
 
 }

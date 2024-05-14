@@ -7,7 +7,7 @@ import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 public class ExteriorTemperatureParser {
-    private ArrayList<ExteriorTemperature> exteriorTemperaturesList = new ArrayList<ExteriorTemperature>();
+    private ArrayList<Integer> exteriorTemperaturesList = new ArrayList<Integer>();
     private int currentIndex = 0;
     private int maxIndex = 0;
     private final int one = 1;
@@ -15,23 +15,23 @@ public class ExteriorTemperatureParser {
     private final static int MAXIMUM_EXTERIOR_TEMPERATURE = 40;
     private int firstTemperature;
     
+    private int firstIndexOfList=0;
+
     public ExteriorTemperatureParser(String filename){
         parse(filename);
         maxIndex = exteriorTemperaturesList.size();
     }
 
-    public ExteriorTemperature getNexExteriorTemperature(){
+    public Integer getNexExteriorTemperature(){
         //si le currentIndex est avant l'avant-dernière valeur alors on renvoie currentindex ++, sinon juste currentIndex car sinon indexOutOfBonds 
-        //System.out.println("has next temp:"+hasNextTemperature());
-        //System.out.println("currIndex+1<maxIndex :"+((currentIndex+one)<maxIndex));
         if(hasNextTemperature() && (currentIndex+one)<maxIndex){
-            ExteriorTemperature temp=exteriorTemperaturesList.get(currentIndex);
+            Integer temp=exteriorTemperaturesList.get(currentIndex);
             currentIndex++;
-            return temp;}  //affiche 0 2 4 6 et index++ affiche 0 1 3 5 ..
+            return temp;}  //affiche 0 2 4 6 et index++ affiche 0 1 3 5 ..  //on peut refactorisé ce code !!!!!
         return exteriorTemperaturesList.get(currentIndex);
     }
 
-    public ArrayList<ExteriorTemperature> getExteriorTemperaturesList(){
+    public ArrayList<Integer> getExteriorTemperaturesList(){
         return exteriorTemperaturesList;
     }
 
@@ -72,9 +72,8 @@ public class ExteriorTemperatureParser {
         if(scannerOfLine.hasNextInt()){ //si la prochaine valeur est un int alors on rentre dans le if 
             int temperature = scannerOfLine.nextInt();
             if(temperature>=MINIMUM_EXTERIOR_TEMPERATURE && temperature <= MAXIMUM_EXTERIOR_TEMPERATURE){
-                if(exteriorTemperaturesList.isEmpty())firstTemperature=temperature;
-                ExteriorTemperature exteriorTemperature = new ExteriorTemperature(temperature);
-                exteriorTemperaturesList.add(exteriorTemperature); //si ok alors on ajoute a notre liste de températures
+                //Integer exteriorTemperature = temperature;
+                exteriorTemperaturesList.add(temperature); //si ok alors on ajoute a notre liste de températures
                 return true;
             }
         }
@@ -82,6 +81,6 @@ public class ExteriorTemperatureParser {
     }
 
     public int getFirstTemperature(){
-        return firstTemperature;
+        return exteriorTemperaturesList.get(firstIndexOfList);
     }
 }

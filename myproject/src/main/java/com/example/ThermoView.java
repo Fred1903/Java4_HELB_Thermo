@@ -80,7 +80,7 @@ public class ThermoView implements IThermoObserver, ICellObserver {
     public ThermoView(Stage stage) {
         this.stage = stage;
         //Verif si la configuration est bonne  
-        //Est-ce que ce if doit etre ici ? n'est-ce pas de la logique ?
+        //Est-ce que ce if doit etre ici ? n'est-ce pas de la logique ? REPONSE DANS CTRL
         if(ThermoController.getNumberColumns() >= ThermoController.getMINIMUM_NUMBER_ROWS_AND_COLUMNS() && ThermoController.getNumberRows() <=ThermoController.getMAXIMUM_NUMBER_ROWS_AND_COLUMNS()
            && ThermoController.getNumberColumns()<=ThermoController.getMAXIMUM_NUMBER_ROWS_AND_COLUMNS() && ThermoController.getNumberRows() >=ThermoController.getMINIMUM_NUMBER_ROWS_AND_COLUMNS()){
             initializeUI();
@@ -133,6 +133,9 @@ public class ThermoView implements IThermoObserver, ICellObserver {
     }
 
     public Button getHeatCellButton(String cellId){
+        if(cellId.equals("R1C1")){
+            System.out.println("Dans get");   
+        }
         return heatCellsMap.get(cellId);
     }
 
@@ -177,6 +180,7 @@ public class ThermoView implements IThermoObserver, ICellObserver {
         stage.setScene(scene);
         stage.setTitle(sceneTitle);
         stage.show();
+        stage.setResizable(false); //permet qu'on peut pas agrandir ou diminuer la taille de la fenetre 
     }
 
     public String getHeatMode(){
@@ -204,7 +208,7 @@ public class ThermoView implements IThermoObserver, ICellObserver {
         Button buttonToChangeColor =cellMap.get(cellId);
         String stringToAddForHeatCells="";
         String color;
-        if(!isDeadCell){//ok ? ou ajt en parametre bool isDeadCell
+        if(!isDeadCell){
             if(isHeatCell){
                 if(!isHeatDiffuser){
                     color = "-fx-background-color: rgb("+UNACTIVE_HEAT_CELL_COLOR+");"; //En gris si la source de chaleur est désactivée
@@ -228,14 +232,23 @@ public class ThermoView implements IThermoObserver, ICellObserver {
     }
 
     private void addHeatCellToHeatCellMap(String cellId, String color){
+        if(cellId.equals("R1C1")){
+            System.out.println("Dans add");
+        }
         Button heatCellButton;
         if(!heatCellsMap.containsKey(cellId)){
+            if(cellId.equals("R1C1")){
+                System.out.println("Dans if");
+            }
             heatCellsCounterMap.put(cellId,heatCellsCounterMap.size()+1); //le int du dernier element ajt=taille de la map avant l'ajout+1 car on veut pas commencer a 0  
             heatCellButton = createNewButton("S"+heatCellsCounterMap.get(cellId), WIDTH_SYSTEM_ATTRIBUTES_BUTTONS, HEIGHT_HEAT_SOURCES);
             heatCellsMap.put(cellId, heatCellButton);
             vboxHeatCellsInsideScrollPane.getChildren().add(heatCellButton); //On ajoute le bouton de la source de chaleur dans la vbox de la scrollpane a gauche 
         }
         else{
+            if(cellId.equals("R1C1")){
+                System.out.println("Dans else");
+            }
             heatCellButton = heatCellsMap.get(cellId);
         }
         heatCellButton.setStyle(color);
@@ -243,21 +256,29 @@ public class ThermoView implements IThermoObserver, ICellObserver {
 
     public String getShadeOfRed(double temperature) {
         // On assume que la température varie de 0 à 50
+
+        /*
+         * 255 0 0  = Rouge max et 255 255 255 = blanc ---> doit que varier entre ses couleurs 
+         * Temp max = 255 0 0 et temp min= 255 255 255 
+         * --> G et B = pourcentage --- > ex : min=0 et max = 40 --> temp:35  pourcentage --> (35/40)*100 = 87,5%
+         *  G et B = 255 - (255/100)*87,5 =
+         * ---> 255 - (255*(87,5/100))
+         * 
+         * min 0 max 100 temp 50   ->gb attendu : 127,5
+         * 
+         * probleme = GB avec temp 100 = 55 et GB avec temp 50 = 155 alors que devrait = 0 et 127,5
+         */
         int rgbRedValue = 255;
-        int rgbBlueValue = 0;
-        int rgbGreenValue = 0;
-        //Le blue,green et red qu'on change ici sont pour des températures entre 0 et 50, si cet écart est plus grand alorsfaut changer ses valeurs
-        if(temperature<ThermoController.getEstimatedMedianTemperature()){ //si temperature plus petit que 25 alors rouge plus clair
-            for(double i=temperature;i<=ThermoController.getEstimatedMedianTemperature();i++){
-                rgbBlueValue+=8; //clair ok 
-                rgbGreenValue+=8;
-            }
-        }
-        else{ //sinon rouge plus foncé
-            for(int i=ThermoController.getEstimatedMedianTemperature();i<=temperature;i++){
-                rgbRedValue-=5; //foncé ok
-            }
-        }
+        double rgbBlueValue = 0;
+        double rgbGreenValue = 0;
+        double rgbGreenBlueValue = 255;
+
+        double max = 100;
+        double min = 0;
+        double totalEcart = max-min;
+        rgbGreenBlueValue = 255-(255*(temperature/totalEcart));
+        rgbBlueValue = rgbGreenBlueValue;
+        rgbGreenValue = rgbGreenBlueValue;
         return "-fx-background-color: rgb("+rgbRedValue+","+rgbGreenValue+","+rgbBlueValue+");";
     }
 
