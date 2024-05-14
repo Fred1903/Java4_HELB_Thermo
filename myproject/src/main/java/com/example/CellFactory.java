@@ -11,6 +11,9 @@ public class CellFactory { /////////est-ce que factory doit etre en static ??
     private int maxDeadCell = NUMBER_ROWS+NUMBER_COLUMNS;
     private int minDeadCell = 0;
     private int distance ;
+    
+    private final int ROW_POSITION_IN_MATRIX = 0;
+    private final int COL_POSITION_IN_MATRIX = 1;
 
 
     private final int FIRST_ROW_COL = 0;
@@ -111,7 +114,7 @@ public class CellFactory { /////////est-ce que factory doit etre en static ??
     private int getShortestDistanceToHeatCell(int rowCell, int colCell) {
         int shortestDistance = ThermoController.getMAXIMUM_NUMBER_ROWS_AND_COLUMNS(); // On met une grande valeur de base
         for (int[] heatSource : heatSources) {//pour chaque source de chaleur on reg la distance avec x,y
-            int distance = calculateManhattanDistance(rowCell, colCell, heatSource[0], heatSource[1]);
+            int distance = calculateManhattanDistance(rowCell, colCell, heatSource[ROW_POSITION_IN_MATRIX], heatSource[COL_POSITION_IN_MATRIX]);
             if (distance < shortestDistance) {
                 shortestDistance = distance; //pour chaque passage dans la boucle on verifie si la distance est plus petite que la distance plus petite qu'on avait avant
             }

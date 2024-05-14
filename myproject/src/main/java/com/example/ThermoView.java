@@ -46,13 +46,13 @@ public class ThermoView implements IThermoObserver, ICellObserver {
 
     private int counterHeatCells =0 ;
 
-    private Integer numberSeconds= 0;
+    private Integer numberSeconds=0;
 
     private String cellId;
     private String sceneTitle = "HELB Thermo";
 
 
-    private Button timeButton = createNewButton(""+numberSeconds,WIDTH_SYSTEM_ATTRIBUTES_BUTTONS,HEIGHT_TOP_ATTRIBUTES_BUTTONS); //est-ce que le time est considéré comme variable magique ??
+    private Button timeButton = createNewButton("Temps : "+numberSeconds+"s",WIDTH_SYSTEM_ATTRIBUTES_BUTTONS,HEIGHT_TOP_ATTRIBUTES_BUTTONS); //est-ce que le time est considéré comme variable magique ??
     private Button costButton = createNewButton("€",WIDTH_SYSTEM_ATTRIBUTES_BUTTONS,HEIGHT_TOP_ATTRIBUTES_BUTTONS);
     private Button exteriorTemperatureButton = createNewButton("T°ext.",WIDTH_SYSTEM_ATTRIBUTES_BUTTONS,HEIGHT_TOP_ATTRIBUTES_BUTTONS);
     private Button averageTemperatureButton = createNewButton("T°moy.",WIDTH_SYSTEM_ATTRIBUTES_BUTTONS,HEIGHT_TOP_ATTRIBUTES_BUTTONS);
@@ -195,10 +195,11 @@ public class ThermoView implements IThermoObserver, ICellObserver {
     }
 
     @Override//Pour mettre à jour le temps affiché
-    public void updateSystemAttributes(int time, double averageTemperature, double exteriorTemperature) {
-        timeButton.setText(""+time);
+    public void updateSystemAttributes(int time, double averageTemperature, double exteriorTemperature, double cost) {
+        timeButton.setText("Temps : "+time+"s");
         averageTemperatureButton.setText("T°moy : "+String.format("%.1f", averageTemperature)+"°C"); //permet d'afficher seulement 1 chiffre après la virgule
         exteriorTemperatureButton.setText("T°ext : "+exteriorTemperature+"°C");
+        costButton.setText("Coût : "+String.format("%.1f", cost)+"€");
     }
 
     @Override//Pour changer la couleur des cellules vivantes et  mortes

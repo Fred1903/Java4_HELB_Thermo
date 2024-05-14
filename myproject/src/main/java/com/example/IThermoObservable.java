@@ -4,6 +4,6 @@ public interface IThermoObservable {
 
     void attach(IThermoObserver thermoObserver);
     void detach(IThermoObserver thermoObserver);
-    void NotifyThermoViewOfSystemAttributes(int time, double averageTemperature, double outsideTemperature); //methode de Object je suppose
+    void NotifyThermoViewOfSystemAttributes(int time, double averageTemperature, double outsideTemperature, double cost); //methode de Object je suppose
     
 }
