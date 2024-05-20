@@ -11,6 +11,7 @@ com/example/ICellObservable.class
 com/example/ICellObserver.class
 com/example/ManualStrategy.class
 com/example/CellConfigurationView.class
+com/example/SuccesiveStrategy.class
 com/example/ThermoView.class
 com/example/IThermoObservable.class
 com/example/Main.class

@@ -10,6 +10,8 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 
+import com.example.ThermoController;
+
 import javafx.geometry.Pos;
 
 //PROBLEME : Qd SC on appuie sur panneau de config et on laisse comme c est et appuie sur valider ca enleve la sc et met en cell normale...
@@ -26,8 +28,14 @@ public class CellConfigurationView{
 
     private Stage window;
 
+    private final int SPACING_HBOX = 50;
+    private final int SPACING_CONFIGURATION_VBOX = 30;
+
     private int row;
     private int col;
+    private final int VISIBLE_ROW_COUNT = 10;  //ligne du dessous pour que si on a temp negative ca fonctionne aussi
+    private final int HALF_TEMPERATURE = (ThermoController.getMaximumTemperature()-(ThermoController.getMaximumTemperature()-ThermoController.getMinimumTemperature())/2);
+    
 
     public CellConfigurationView(){
         submitButton = new Button("Valider"); ///////////OBLIGER de l'instancier dans le ctor et pas dans display car sinon ca ne fonctionnera pas !!!!!!!!!!!
@@ -52,12 +60,12 @@ public class CellConfigurationView{
         Label textTemperatureLabel = createLabel("T° de la source quand activée");
 
         ComboBox<Integer> temperatureCombobox = new ComboBox<Integer>(); //0 min, 100 max 
-        for (int i = 0; i <= 100; i++) { //100 = max degrés a declarer qql part
+        for (int i = 0; i <= ThermoController.getMaximumTemperature(); i++) { //100 = max degrés a declarer qql part
             temperatureCombobox.getItems().add(i);
         }
-        temperatureCombobox.setVisibleRowCount(10); //Fait que on voit que 10 nombre a la fois et pas tout
-        temperatureCombobox.getSelectionModel().select(100/2);  // selectionne la valeur du milieu
-        choiceTemperature=100/2;//on met la temp a celle par defaut, au cas ou elle n'est pas changée
+        temperatureCombobox.setVisibleRowCount(VISIBLE_ROW_COUNT); //Fait que on voit que 10 nombre a la fois et pas tout
+        temperatureCombobox.getSelectionModel().select(HALF_TEMPERATURE);  // selectionne la valeur du milieu
+        choiceTemperature=HALF_TEMPERATURE;//on met la temp a celle par defaut, au cas ou elle n'est pas changée
         
         submitButton.setStyle("-fx-border-color: black; -fx-border-width: 2px; -fx-padding:30px; -fx-border-radius:15px;");
 
@@ -67,15 +75,15 @@ public class CellConfigurationView{
         defineAsHeatCellCheckbox.setStyle("-fx-border-color: black; -fx-border-width: 2px; -fx-padding:30px; -fx-border-radius:15px;");
 
 
-        HBox defineAsDeadCellHbox = new HBox(50);
-        HBox defineAsHeatCellHbox = new HBox(50);
-        HBox defineTemperatureHBox = new HBox(50);
+        HBox defineAsDeadCellHbox = new HBox(SPACING_HBOX);
+        HBox defineAsHeatCellHbox = new HBox(SPACING_HBOX);
+        HBox defineTemperatureHBox = new HBox(SPACING_HBOX);
 
         defineAsHeatCellHbox.getChildren().addAll(defineAsHeatCellLabel, defineAsHeatCellCheckbox);
         defineAsDeadCellHbox.getChildren().addAll(defineAsDeadCellLabel, defineAsDeadCellCheckbox);
         defineTemperatureHBox.getChildren().addAll(textTemperatureLabel,temperatureCombobox);
 
-        VBox configurationLayout = new VBox(30);
+        VBox configurationLayout = new VBox(SPACING_CONFIGURATION_VBOX);
         configurationLayout.getChildren().addAll(cellPositionLabel,defineAsDeadCellHbox,defineAsHeatCellHbox,defineTemperatureHBox,submitButton);
         configurationLayout.setAlignment(Pos.CENTER);
 

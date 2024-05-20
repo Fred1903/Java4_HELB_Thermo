@@ -19,6 +19,7 @@ public class ThermoController implements IThermoObservable {
 
     private boolean areCellsCreated=false;
     private boolean isSystemPlaying = false;
+    private boolean numberAliveCellsIsNull = true;
 
     private final static int FIRST_ROW_COL = 0;
     private final static int MINIMUM_NUMBER_ROWS_AND_COLUMNS = 3;
@@ -34,6 +35,8 @@ public class ThermoController implements IThermoObservable {
     private final static int DISTANCE_MIN_MAX_TEMPERATURE = ESTIMATED_MAX_TEMPERATURE-(+ESTIMATED_MIN_TEMPERATURE);
     private final static int ESTIMATED_MEDIAN_TEMPERATURE = DISTANCE_MIN_MAX_TEMPERATURE/2;
 
+    private final static int MAXIMUM_TEMPERATURE = 100;
+    private final static int MINIMUM_TEMPERATURE = 0;
     
     private int zero = 0;
     private int numberSeconds = 0;
@@ -45,6 +48,12 @@ public class ThermoController implements IThermoObservable {
     private HashMap<String,Cell> cellMap = new HashMap<String,Cell>();
 
     private final String exteriorTemperatureFile = "src/main/java/com/example/simul.data.txt" ;
+
+    private final static String MANUAL_MODE_STRING = "Manual Mode";
+    private final static String TARGET_MODE_STRING = "Target Mode";
+    private final static String SUCCESSIVE_MODE_STRING = "Successive Mode";
+
+
     private String currentStrategy = "Manual Mode"; //on commence avec manual mode comme strategie
 
     private CellFactory cellFactory;
@@ -66,13 +75,6 @@ public class ThermoController implements IThermoObservable {
     private String selectedHeatMode;
 
     private double cost;  //n = nbr sec source allumée, d=temperature : n*d^2  <--- 1 source  ---> cost toutes les sources 
-    /*
-     * ex temp = 10
-     * sec 1 : 1*10^2 = 100
-     * sec 2 : 2*10^2 = 200 ... 300, 400
-     * 
-     * cost += 10^2
-     */
 
     Log log = new Log();
 
@@ -145,6 +147,26 @@ public class ThermoController implements IThermoObservable {
         return MINIMUM_NUMBER_ROWS_AND_COLUMNS;
     }
 
+    public static String getManualModeString() {
+        return MANUAL_MODE_STRING;
+    }
+
+    public static String getTargetModeString() {
+        return TARGET_MODE_STRING;
+    }
+
+    public static String getSuccessiveModeString() {
+        return SUCCESSIVE_MODE_STRING;
+    }
+
+    public static int getMaximumTemperature() {
+        return MAXIMUM_TEMPERATURE;
+    }
+
+    public static int getMinimumTemperature() {
+        return MINIMUM_TEMPERATURE;
+    }
+
     public static int getNumberColumns() {
         return NUMBER_COLUMNS;
     }
@@ -176,12 +198,14 @@ public class ThermoController implements IThermoObservable {
             cellMap = cellFactory.getCellMap();
             
             areCellsCreated=true;
-        } 
+        }  
 
+        
         //Lorsque le bouton start dans la vue a été cliqué, ...
         thermoView.getStartButton().setOnAction(e -> {
-            if(!isSystemPlaying)startTimer(); //si on a déjà appuyé sur play, alors re-appuyé sur play n'aura pas d'effets
-            check();
+            /*if(!isSystemPlaying)startTimer(); //si on a déjà appuyé sur play, alors re-appuyé sur play n'aura pas d'effets
+            check();*/
+            startButtonClicked();
         });
         thermoView.getPauseButton().setOnAction(e -> {
             pauseSystem();
@@ -202,14 +226,14 @@ public class ThermoController implements IThermoObservable {
                 final int colCopy = col;
                 Cell cell = cellMap.get(getCellId(row, col));
                 //a voir si nbrAliveCells initial on peut pas le recup de la factory ?
-                if(!cell.isCellDead())numberAliveCells++; //pour calculer la temp.moyenne par la suite on prend en compte que les cellules vivantes
+                if(!cell.isCellDead() && numberAliveCellsIsNull)numberAliveCells++; //pour calculer la temp.moyenne par la suite on prend en compte que les cellules vivantes
                 if(cell.isHeatCell()){ //On doit mettre ce if avant l'autre car dans l'autre if a la fin du calculateCellTemp ya un notify pour la vue
-                    heatCellMap.put(getCellId(rowCopy,colCopy),cell);
+                    heatCellMap.put(getCellId(rowCopy,colCopy),cell); 
                     //dans le cas ou strategie manuel!!!!!!! 
-                    if(currentStrategy.equals("Manual Mode")){
+                    if(currentStrategy.equals(MANUAL_MODE_STRING)){
                         if(thermoView.getHeatCellButton(getCellId(row, col))!=null){//doit faire ce if car lorsque créer sc, pas encore dans heatCellbtn
                             thermoView.getHeatCellButton(getCellId(row, col)).setOnAction(e -> {//lorsque un click est effectué sur une sc a gauche
-                                System.out.println("Dans ctrll");
+                                System.out.println("Dans ctrll stAction");
                                 heatCellStrategy.applyStrategy(cell, averageTemperature, heatCellMap, numberAliveCells);
                                 //cell.setDiffuseHeat(!cell.isHeatDiffuser());//si diffuseHeat=true alors on le passe a false, si false alors on met true
                                 
@@ -230,6 +254,7 @@ public class ThermoController implements IThermoObservable {
                 });
             }
         }
+        if(numberAliveCellsIsNull)numberAliveCellsIsNull=false; //on les compte une fois au début et pas quand rappel le check
         //Fonctionne ici mais pas dans le for car la boucle for continue et on aura pas les bonnes valeurs pour row et col donc attribuera ce qu'on a fait a la derniere valeur
         //si on enleve ou ajoute cellule morte, faut changer le numberAlivesCells
         if(cellConfigurationView.getSubmitButton()!=null){//Il faut vérifier que c'est pas null sinon nullpointerexception);
@@ -237,26 +262,44 @@ public class ThermoController implements IThermoObservable {
                 Cell cell = cellMap.get(cellConfigurationView.getCellId());
                 //va update la cellule en fonction du formulaire dans son modèle et récupérer en meme temps un changement dans nombre cell vivantes
                 numberAliveCells += cell.updateCell(cellConfigurationView.isClickedOnDeadCell(),cellConfigurationView.isClickedOnHeatCell(),cellConfigurationView.getChoiceTemperature(),averageTemperature);
-                if(cell.isHeatDiffuser()){//qd sc activée via panneau config on la met dans la liste  //attention duplication !!!!!!!!!
+                if(cell.isHeatDiffuser() && !heatCellMap.containsKey(cellConfigurationView.getCellId())){//qd sc activée via panneau config on la met dans la liste  //attention duplication !!!!!!!!!
+                    //Attention que ce code prend que les nvl sc pas les anciennes ?
+                    System.out.println("La cellulle en question :"+cellConfigurationView.getCellId());
                     heatCellSecondsList.add(cellConfigurationView.getCellId());
+                    heatCellMap.put(cellConfigurationView.getCellId(),cell);
+                }
+                //si on a enlevé la sc on la retire de la map des sc et des secondes sc
+                else if(!cell.isHeatCell() && heatCellMap.containsKey(cellConfigurationView.getCellId())){
+                    heatCellMap.remove(cellConfigurationView.getCellId());
+                    heatCellSecondsList.remove(cellConfigurationView.getCellId());
                 }
                 cellConfigurationView.closeWindow(); //une fois les données enregistrées, on ferme la popupc
-                startTimer();
+                /*startTimer();
+                check(); //on fait de la récursivité pour mettre a jour le check pour le setOnAction des sc a gauche! */
+                startButtonClicked();
             });
         } 
         thermoView.getHeatModeCombobox().valueProperty().addListener((observable, oldValue, newValue) -> {
             selectedHeatMode=newValue;//=valeur selectionné dans combobox
             currentStrategy=newValue; 
-            if(currentStrategy.equals("Manual Mode")){
-                System.out.println("target mode");
+            if(currentStrategy.equals(MANUAL_MODE_STRING)){
                 heatCellStrategy=new ManualStrategy();
             }
-            else{
-                System.out.println("target mode");
+            else if(currentStrategy.equals(TARGET_MODE_STRING)){
                 heatCellStrategy=new TargetStrategy();
             } 
+            else{
+                heatCellStrategy = new SuccesiveStrategy();
+            }
         });
     }
+
+
+    public void startButtonClicked(){
+        if(!isSystemPlaying)startTimer(); //si on a déjà appuyé sur play, alors re-appuyé sur play n'aura pas d'effets
+        check();
+    }
+
 
     private void pauseSystem(){
         timeline.pause();
@@ -268,10 +311,19 @@ public class ThermoController implements IThermoObservable {
         Duration duration = Duration.seconds(1);
         EventHandler<ActionEvent> eventHandler = e -> {
             incrementTime(); //toutes les secondes on incrémente le temps
-            if(currentStrategy.equals("Target Mode")){
-                Cell uselessCell = new Cell();
-                heatCellStrategy.applyStrategy(uselessCell, averageTemperature, heatCellMap, numberAliveCells);
+            Cell uselessCell = new Cell();
+            if(currentStrategy.equals(TARGET_MODE_STRING)){
+                TargetStrategy targetStrategy = (TargetStrategy) heatCellStrategy;//on doit mettre en target car ya getNewAverageTemp
+                targetStrategy.applyStrategy(uselessCell, averageTemperature, heatCellMap, numberAliveCells);
+                //TargetStrategy heatCellStrategy = (TargetStrategy) heatCellStrategy;
+                //TargetStrategy targetStrategy = (TargetStrategy) heatCellStrategy; 
+                //On caste heatCellStrategy en target car la methode getTemperature n'Est pas dans la  classe mere
+                //averageTemperature=heatCellStrategy.getNewAverageTemperature();
+                averageTemperature = targetStrategy.getNewAverageTemperature();
             } 
+            else if(currentStrategy.equals(SUCCESSIVE_MODE_STRING)){
+                heatCellStrategy.applyStrategy(uselessCell, averageTemperature, heatCellMap, numberAliveCells);
+            }
             calculate(); 
             log.addLog(numberSeconds,outsideTemperature,averageTemperature); //ajout a chaque seconde des infos pour le log
         };

@@ -29,18 +29,17 @@ public class ThermoView implements IThermoObserver, ICellObserver {
     private final int WIDTH_HEIGHT_TIME_SETTINGS_BUTTONS = 50;
     private final int HEIGHT_HEAT_SOURCES = 100;
     private final int WIDTH_HEIGHT_CELLS = 85;
-    private final int TEN = 10;
-    private final int TWENTY = 20;
-    private final int THIRTY = 30;
-    private final int FIFTY = 50;
+    private final int TOP_HBOX_ATTRIBUTES_SPACING = 10;
+    private final int VBOX_INSIDE_SCROLL_PANE_SPACING = 20;
+    private final int VBOX_BORDER_SPACING = 20;
+    private final int CELL_BOARD_HGAP_AND_VGAP = 30;
+    private final int HEAT_SOURCES_AND_CELL_HBOX_SPACING = 50;
 
-    //private final static int IDEAL_RGB_GREEN_BLUE_MINUS = 42; Faux, a recalculer !!
-    //private final static int IDEAL_RGB_RED_MINUS = 44;
+    private final int SCROLLPANE_PREF_HEIGHT=300;
+
 
     private final static String DEAD_CELL_COLOR ="0,0,0"; //Couleur noir en rgb  
     private final static String UNACTIVE_HEAT_CELL_COLOR = "186,186,186"; //Couleur grise
-    private final String MANUAL_MODE_STRING = "Manual Mode";
-    private final String TARGET_MODE_STRING = "Target Mode";
 
     private String selectedHeatMode;
 
@@ -63,14 +62,14 @@ public class ThermoView implements IThermoObserver, ICellObserver {
 
 
 
-    private VBox border = new VBox(TWENTY);
-    private HBox topHboxAttributes = new HBox(TEN);//c le spacing entre parentheses
+    private VBox border = new VBox(VBOX_BORDER_SPACING);
+    private HBox topHboxAttributes = new HBox(TOP_HBOX_ATTRIBUTES_SPACING);//c le spacing entre parentheses
     private HBox timeSettingsHBox = new HBox();
-    private HBox heatSourcesAndCellsHbox = new HBox(FIFTY);
-    private VBox leftVboxHeatSources = new VBox(TWENTY); 
+    private HBox heatSourcesAndCellsHbox = new HBox(HEAT_SOURCES_AND_CELL_HBOX_SPACING);
+    private VBox leftVboxHeatSources = new VBox();  
     private GridPane cellBoard = new GridPane();
 
-    VBox vboxHeatCellsInsideScrollPane=new VBox(TWENTY);
+    VBox vboxHeatCellsInsideScrollPane=new VBox(VBOX_INSIDE_SCROLL_PANE_SPACING);
 
     private HashMap<String,Button> cellMap= new HashMap<String,Button>(); //CellId(Ex Row=10 et col =8 ---> "R10C8"), btn
     private HashMap<String, Button> heatCellsMap = new HashMap<String, Button>(); //cellId, btn
@@ -84,7 +83,7 @@ public class ThermoView implements IThermoObserver, ICellObserver {
         if(ThermoController.getNumberColumns() >= ThermoController.getMINIMUM_NUMBER_ROWS_AND_COLUMNS() && ThermoController.getNumberRows() <=ThermoController.getMAXIMUM_NUMBER_ROWS_AND_COLUMNS()
            && ThermoController.getNumberColumns()<=ThermoController.getMAXIMUM_NUMBER_ROWS_AND_COLUMNS() && ThermoController.getNumberRows() >=ThermoController.getMINIMUM_NUMBER_ROWS_AND_COLUMNS()){
             initializeUI();
-        }////////////Attention max --> dans controller
+        }
         else{
             StackPane errorMessageStackPane = new StackPane(); //J'utilise stackpane car va mettre le texte direct au centre de la page
             Label labelError = new Label("La configuration est incorrecte, il doit y avoir minimum"+ThermoController.getMINIMUM_NUMBER_ROWS_AND_COLUMNS()+
@@ -97,18 +96,15 @@ public class ThermoView implements IThermoObserver, ICellObserver {
 
 
     private void initializeUI() {
-        heatModeCombobox.getItems().add(MANUAL_MODE_STRING);
-        heatModeCombobox.getItems().add(TARGET_MODE_STRING);
-        heatModeCombobox.getSelectionModel().select(MANUAL_MODE_STRING);  // selectionne lE mode manuel par défaut pour affichage
-        selectedHeatMode=MANUAL_MODE_STRING; //selectionne mode manual par defaut comme valeur
+        heatModeCombobox.getItems().addAll(ThermoController.getManualModeString(),ThermoController.getTargetModeString(),ThermoController.getSuccessiveModeString());
+        heatModeCombobox.getSelectionModel().select(ThermoController.getManualModeString());  // selectionne lE mode manuel par défaut pour affichage
+        selectedHeatMode=ThermoController.getManualModeString(); //selectionne mode manual par defaut comme valeur
 
         //Ajout d'une scroll bar pour les sources de chaleurs
         ScrollPane scrollPaneHeatSources = new ScrollPane();
         scrollPaneHeatSources.setContent(vboxHeatCellsInsideScrollPane);
         scrollPaneHeatSources.setFitToWidth(true);
-        scrollPaneHeatSources.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        scrollPaneHeatSources.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        scrollPaneHeatSources.setPrefHeight(300);
+        scrollPaneHeatSources.setPrefHeight(SCROLLPANE_PREF_HEIGHT);
 
         leftVboxHeatSources.getChildren().add(scrollPaneHeatSources);
         
@@ -119,10 +115,10 @@ public class ThermoView implements IThermoObserver, ICellObserver {
         createCells();
         heatSourcesAndCellsHbox.getChildren().addAll(leftVboxHeatSources,cellBoard);
 
-        cellBoard.setHgap(THIRTY);//espacement entre cellules horizontalement
-        cellBoard.setVgap(THIRTY); //espacement entre cellules verticalement
+        cellBoard.setHgap(CELL_BOARD_HGAP_AND_VGAP);//espacement entre cellules horizontalement
+        cellBoard.setVgap(CELL_BOARD_HGAP_AND_VGAP); //espacement entre cellules verticalement
         cellBoard.setStyle("-fx-border-color: black; -fx-border-width: 2px; -fx-padding:30px; -fx-border-radius:30px; -fx-margin:30px");
-        cellBoard.setPrefHeight((ThermoController.getNumberRows()*WIDTH_HEIGHT_CELLS)+THIRTY+THIRTY);//hauteur = hauteur de toutes les cellules + le margin
+        cellBoard.setPrefHeight((ThermoController.getNumberRows()*WIDTH_HEIGHT_CELLS)+CELL_BOARD_HGAP_AND_VGAP+CELL_BOARD_HGAP_AND_VGAP);//hauteur = hauteur de toutes les cellules + le margin
 
 
         scrollPaneHeatSources.setPrefHeight(cellBoard.getPrefHeight());
@@ -133,9 +129,6 @@ public class ThermoView implements IThermoObserver, ICellObserver {
     }
 
     public Button getHeatCellButton(String cellId){
-        if(cellId.equals("R1C1")){
-            System.out.println("Dans get");   
-        }
         return heatCellsMap.get(cellId);
     }
 
@@ -212,7 +205,7 @@ public class ThermoView implements IThermoObserver, ICellObserver {
         if(!isDeadCell){
             if(isHeatCell){
                 if(!isHeatDiffuser){
-                    color = "-fx-background-color: rgb("+UNACTIVE_HEAT_CELL_COLOR+");"; //En gris si la source de chaleur est désactivée
+                    color = getColorString(UNACTIVE_HEAT_CELL_COLOR); //En gris si la source de chaleur est désactivée
                 }
                 else{
                     color= getShadeOfRed(cellTemperature); //pour source chaleur activée
@@ -222,66 +215,60 @@ public class ThermoView implements IThermoObserver, ICellObserver {
             }
             else{
                 color=getShadeOfRed(cellTemperature); //Pour cellule normale
+                //si avant c'etait une sc et mtn plus, on l'enlève des hashmap de sc
+                //if(heatCellsCounterMap.containsKey(cellId))heatCellsCounterMap.remove(cellId);
+                ////si on retire le if d'avant on doit s'assurer que on change le texte de toutes les sc
+                if(heatCellsMap.containsKey(cellId)){
+                    Button buttonToRemove = heatCellsMap.get(cellId);
+                    heatCellsMap.remove(cellId);
+                    vboxHeatCellsInsideScrollPane.getChildren().remove(buttonToRemove); //faut changer le style des autres
+                    /*for (Button heatButton : heatCellsMap.values()) {
+                        heatButton = new Button()
+                    }*/
+                }
             }
             buttonToChangeColor.setText(stringToAddForHeatCells+String.format("%.1f", cellTemperature)); //1 seul chiffre après la virgule
         }
         else{
             buttonToChangeColor.setText("");//si c'etait une cell avant et que on l'a changé en morte, on ne veut plus voir sa temp affichée
-            color ="-fx-background-color: rgb("+DEAD_CELL_COLOR+");"; //sinon si cellule morte en noir
+            color = getColorString(DEAD_CELL_COLOR); //sinon si cellule morte en noir
         }
         buttonToChangeColor.setStyle(color); //pr toutes les cellules on met une couleur
     }
 
     private void addHeatCellToHeatCellMap(String cellId, String color){
-        if(cellId.equals("R1C1")){
-            System.out.println("Dans add");
-        }
         Button heatCellButton;
         if(!heatCellsMap.containsKey(cellId)){
-            if(cellId.equals("R1C1")){
-                System.out.println("Dans if");
-            }
             heatCellsCounterMap.put(cellId,heatCellsCounterMap.size()+1); //le int du dernier element ajt=taille de la map avant l'ajout+1 car on veut pas commencer a 0  
             heatCellButton = createNewButton("S"+heatCellsCounterMap.get(cellId), WIDTH_SYSTEM_ATTRIBUTES_BUTTONS, HEIGHT_HEAT_SOURCES);
             heatCellsMap.put(cellId, heatCellButton);
             vboxHeatCellsInsideScrollPane.getChildren().add(heatCellButton); //On ajoute le bouton de la source de chaleur dans la vbox de la scrollpane a gauche 
         }
         else{
-            if(cellId.equals("R1C1")){
-                System.out.println("Dans else");
-            }
             heatCellButton = heatCellsMap.get(cellId);
         }
         heatCellButton.setStyle(color);
     }
 
     public String getShadeOfRed(double temperature) {
-        // On assume que la température varie de 0 à 50
-
-        /*
-         * 255 0 0  = Rouge max et 255 255 255 = blanc ---> doit que varier entre ses couleurs 
+        /* 255 0 0  = Rouge max et 255 255 255 = blanc ---> doit que varier entre ses couleurs 
          * Temp max = 255 0 0 et temp min= 255 255 255 
          * --> G et B = pourcentage --- > ex : min=0 et max = 40 --> temp:35  pourcentage --> (35/40)*100 = 87,5%
          *  G et B = 255 - (255/100)*87,5 =
          * ---> 255 - (255*(87,5/100))
          * 
-         * min 0 max 100 temp 50   ->gb attendu : 127,5
-         * 
-         * probleme = GB avec temp 100 = 55 et GB avec temp 50 = 155 alors que devrait = 0 et 127,5
-         */
+         * min 0 max 100 temp 50   ->gb attendu : 127,5*/
         int rgbRedValue = 255;
         double rgbBlueValue = 0;
         double rgbGreenValue = 0;
         double rgbGreenBlueValue = 255;
 
-        double max = 100;
-        double min = 0;
-        double totalEcart = max-min;
+        double totalEcart = ThermoController.getMaximumTemperature()-ThermoController.getMinimumTemperature();
         rgbGreenBlueValue = 255-(255*(temperature/totalEcart));
         rgbBlueValue = rgbGreenBlueValue;
         rgbGreenValue = rgbGreenBlueValue;
-        return "-fx-background-color: rgb("+rgbRedValue+","+rgbGreenValue+","+rgbBlueValue+");";
+        return getColorString(rgbRedValue+","+rgbGreenValue+","+rgbBlueValue);
     }
 
-
+    private String getColorString(String rgbColor){return "-fx-background-color: rgb("+rgbColor+");";}
 }

@@ -19,6 +19,7 @@ public class Cell implements ICellObservable{
 
     public Cell(){} //pour le uselessCell attention 
 
+
     public Cell(boolean isHeatDiffuser, boolean isDead, double temperature){
         this.isHeatDiffuser=isHeatDiffuser;
         this.isDead=isDead;
