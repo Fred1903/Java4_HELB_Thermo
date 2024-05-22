@@ -8,11 +8,13 @@ import java.io.PrintWriter;
 public class Log{
     private static String allLogs="Nombre de secondes;T°Moyenne;T°Extérieure\n";
     private String fileName;
+    private String directoryName ="logs";
+    private String logFilePath = directoryName+"/"+fileName; 
+
     private LocalDateTime currentDateTime;
     private File logFile; 
     private File directoryfile;
-    private String directoryName ="logs";
-    private String logFilePath = directoryName+"/"+fileName; //attention verif si fonctionne linux le /
+    
 
 
     public void addLog(int time, double exteriorTemperature, double averageTemperature){ //faut ajouter le cout aussi mais pas encore fait

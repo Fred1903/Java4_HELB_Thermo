@@ -1,6 +1,8 @@
 package com.example;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -20,55 +22,56 @@ import javafx.stage.Stage;
 public class ThermoView implements IThermoObserver, ICellObserver {
     private Stage stage;
     
-    
-    
-    private final int WIDTH_SCENE = 1000 ;
-    private final int HEIGHT_SCENE = 700 ;
+    private final int WIDTH_SCENE = 1500 ;
+    private final int HEIGHT_SCENE = 850 ;
     private final int WIDTH_SYSTEM_ATTRIBUTES_BUTTONS = 150;
     private final int HEIGHT_TOP_ATTRIBUTES_BUTTONS = 40;
     private final int WIDTH_HEIGHT_TIME_SETTINGS_BUTTONS = 50;
     private final int HEIGHT_HEAT_SOURCES = 100;
-    private final int WIDTH_HEIGHT_CELLS = 85;
     private final int TOP_HBOX_ATTRIBUTES_SPACING = 10;
     private final int VBOX_INSIDE_SCROLL_PANE_SPACING = 20;
     private final int VBOX_BORDER_SPACING = 20;
     private final int CELL_BOARD_HGAP_AND_VGAP = 30;
     private final int HEAT_SOURCES_AND_CELL_HBOX_SPACING = 50;
+    private final int TIME_SETTINGS_AND_HEAT_SOURCES_VBOX_SPACING=20;
+    private int counterHeatCells =0 ;
+    private int startNumberSeconds=0;
 
-    private final int SCROLLPANE_PREF_HEIGHT=300;
+    private final double SCROLLPANE_PREF_HEIGHT=HEIGHT_SCENE*0.75;//80% de la hauteur de la fenetre
+    private final double CELL_BOARD_PREF_HEIGHT = HEIGHT_SCENE*0.75;
+    private final double CELL_BOARD_PREF_WIDTH = WIDTH_SCENE*0.75;
+    /*Calcul : Aire du cellBoard = cellBoardPrefWidth*cellBoardPrefHeight
+               nombre de cases total = numberRows*numberCols
+               aire d'une seule case = AireCellBoard/nbrCases
+               longueur largeur d'une case si carré = racine carré de son aire 
+    */
+    private final double WIDTH_HEIGHT_CELLS = Math.sqrt((CELL_BOARD_PREF_WIDTH*CELL_BOARD_PREF_HEIGHT)/
+                                            (ThermoController.getNumberColumns()*ThermoController.getNumberRows()));
 
 
     private final static String DEAD_CELL_COLOR ="0,0,0"; //Couleur noir en rgb  
     private final static String UNACTIVE_HEAT_CELL_COLOR = "186,186,186"; //Couleur grise
-
     private String selectedHeatMode;
-
-    private int counterHeatCells =0 ;
-
-    private Integer numberSeconds=0;
-
     private String cellId;
     private String sceneTitle = "HELB Thermo";
 
+    private ComboBox<String> heatModeCombobox = new ComboBox<String>();
 
-    private Button timeButton = createNewButton("Temps : "+numberSeconds+"s",WIDTH_SYSTEM_ATTRIBUTES_BUTTONS,HEIGHT_TOP_ATTRIBUTES_BUTTONS); //est-ce que le time est considéré comme variable magique ??
+    private Button timeButton = createNewButton("Temps : "+startNumberSeconds+"s",WIDTH_SYSTEM_ATTRIBUTES_BUTTONS,HEIGHT_TOP_ATTRIBUTES_BUTTONS); //est-ce que le time est considéré comme variable magique ??
     private Button costButton = createNewButton("€",WIDTH_SYSTEM_ATTRIBUTES_BUTTONS,HEIGHT_TOP_ATTRIBUTES_BUTTONS);
     private Button exteriorTemperatureButton = createNewButton("T°ext.",WIDTH_SYSTEM_ATTRIBUTES_BUTTONS,HEIGHT_TOP_ATTRIBUTES_BUTTONS);
     private Button averageTemperatureButton = createNewButton("T°moy.",WIDTH_SYSTEM_ATTRIBUTES_BUTTONS,HEIGHT_TOP_ATTRIBUTES_BUTTONS);
-    private ComboBox<String> heatModeCombobox = new ComboBox<String>();
     private Button startButton = createNewButton("▷",WIDTH_HEIGHT_TIME_SETTINGS_BUTTONS,WIDTH_HEIGHT_TIME_SETTINGS_BUTTONS);
     private Button pauseButton=createNewButton("▐▐ ",WIDTH_HEIGHT_TIME_SETTINGS_BUTTONS,WIDTH_HEIGHT_TIME_SETTINGS_BUTTONS);
     private Button resetButton=createNewButton("♻",WIDTH_HEIGHT_TIME_SETTINGS_BUTTONS,WIDTH_HEIGHT_TIME_SETTINGS_BUTTONS);
 
-
-
     private VBox border = new VBox(VBOX_BORDER_SPACING);
     private HBox topHboxAttributes = new HBox(TOP_HBOX_ATTRIBUTES_SPACING);//c le spacing entre parentheses
     private HBox timeSettingsHBox = new HBox();
-    private HBox heatSourcesAndCellsHbox = new HBox(HEAT_SOURCES_AND_CELL_HBOX_SPACING);
+    private VBox timeSettingsAndHeatSourcesVbox = new VBox(TIME_SETTINGS_AND_HEAT_SOURCES_VBOX_SPACING);
+    private HBox timeSettingsAndHeatSourcesAndCellsHbox = new HBox(HEAT_SOURCES_AND_CELL_HBOX_SPACING);
     private VBox leftVboxHeatSources = new VBox();  
     private GridPane cellBoard = new GridPane();
-
     VBox vboxHeatCellsInsideScrollPane=new VBox(VBOX_INSIDE_SCROLL_PANE_SPACING);
 
     private HashMap<String,Button> cellMap= new HashMap<String,Button>(); //CellId(Ex Row=10 et col =8 ---> "R10C8"), btn
@@ -76,18 +79,15 @@ public class ThermoView implements IThermoObserver, ICellObserver {
     private HashMap<String, Integer> heatCellsCounterMap = new HashMap<String,Integer>(); //cellId,counter
     
  
-    public ThermoView(Stage stage) {
+    public ThermoView(Stage stage, boolean isConfigurationValid) {
         this.stage = stage;
-        //Verif si la configuration est bonne  
-        //Est-ce que ce if doit etre ici ? n'est-ce pas de la logique ? REPONSE DANS CTRL
-        if(ThermoController.getNumberColumns() >= ThermoController.getMINIMUM_NUMBER_ROWS_AND_COLUMNS() && ThermoController.getNumberRows() <=ThermoController.getMAXIMUM_NUMBER_ROWS_AND_COLUMNS()
-           && ThermoController.getNumberColumns()<=ThermoController.getMAXIMUM_NUMBER_ROWS_AND_COLUMNS() && ThermoController.getNumberRows() >=ThermoController.getMINIMUM_NUMBER_ROWS_AND_COLUMNS()){
+        if(isConfigurationValid){
             initializeUI();
         }
         else{
             StackPane errorMessageStackPane = new StackPane(); //J'utilise stackpane car va mettre le texte direct au centre de la page
-            Label labelError = new Label("La configuration est incorrecte, il doit y avoir minimum"+ThermoController.getMINIMUM_NUMBER_ROWS_AND_COLUMNS()+
-            " lignes et colonnes, et maximum"+ThermoController.getMAXIMUM_NUMBER_ROWS_AND_COLUMNS()+" lignes et colonnes");
+            Label labelError = new Label("La configuration est incorrecte, il doit y avoir minimum "+ThermoController.getMINIMUM_NUMBER_ROWS_AND_COLUMNS()
+            +" lignes et colonnes, et maximum "+ThermoController.getMAXIMUM_NUMBER_ROWS_AND_COLUMNS()+" lignes et colonnes");
             labelError.setStyle("-fx-font-size: 24px; -fx-text-fill: red;");
             errorMessageStackPane.getChildren().add(labelError);
             createScene(errorMessageStackPane);
@@ -104,26 +104,24 @@ public class ThermoView implements IThermoObserver, ICellObserver {
         ScrollPane scrollPaneHeatSources = new ScrollPane();
         scrollPaneHeatSources.setContent(vboxHeatCellsInsideScrollPane);
         scrollPaneHeatSources.setFitToWidth(true);
-        scrollPaneHeatSources.setPrefHeight(SCROLLPANE_PREF_HEIGHT);
-
         leftVboxHeatSources.getChildren().add(scrollPaneHeatSources);
-        
         topHboxAttributes.getChildren().addAll(timeButton,costButton,exteriorTemperatureButton,averageTemperatureButton,heatModeCombobox);
         timeSettingsHBox.getChildren().addAll(startButton,pauseButton,resetButton);
-
-
+        
         createCells();
-        heatSourcesAndCellsHbox.getChildren().addAll(leftVboxHeatSources,cellBoard);
 
         cellBoard.setHgap(CELL_BOARD_HGAP_AND_VGAP);//espacement entre cellules horizontalement
         cellBoard.setVgap(CELL_BOARD_HGAP_AND_VGAP); //espacement entre cellules verticalement
-        cellBoard.setStyle("-fx-border-color: black; -fx-border-width: 2px; -fx-padding:30px; -fx-border-radius:30px; -fx-margin:30px");
-        cellBoard.setPrefHeight((ThermoController.getNumberRows()*WIDTH_HEIGHT_CELLS)+CELL_BOARD_HGAP_AND_VGAP+CELL_BOARD_HGAP_AND_VGAP);//hauteur = hauteur de toutes les cellules + le margin
+        cellBoard.setStyle("-fx-border-color: black; -fx-border-width: 2px; -fx-padding:30px; -fx-border-radius:30px");
+        //cellBoard.setPrefHeight((ThermoController.getNumberRows()*WIDTH_HEIGHT_CELLS)+CELL_BOARD_HGAP_AND_VGAP+CELL_BOARD_HGAP_AND_VGAP);//hauteur = hauteur de toutes les cellules + le margin
+        cellBoard.setPrefHeight(CELL_BOARD_PREF_HEIGHT);
+        cellBoard.setPrefWidth(CELL_BOARD_PREF_WIDTH);
 
+        scrollPaneHeatSources.setPrefHeight(SCROLLPANE_PREF_HEIGHT);
+        timeSettingsAndHeatSourcesVbox.getChildren().addAll(timeSettingsHBox, scrollPaneHeatSources);
+        timeSettingsAndHeatSourcesAndCellsHbox.getChildren().addAll(timeSettingsAndHeatSourcesVbox,cellBoard);
 
-        scrollPaneHeatSources.setPrefHeight(cellBoard.getPrefHeight());
-
-        border.getChildren().addAll(topHboxAttributes,timeSettingsHBox,heatSourcesAndCellsHbox);
+        border.getChildren().addAll(topHboxAttributes, timeSettingsAndHeatSourcesAndCellsHbox);
 
         createScene(border);
     }
@@ -153,7 +151,7 @@ public class ThermoView implements IThermoObserver, ICellObserver {
         for(int row=0; row<ThermoController.getNumberRows();row++){
             for(int col=0; col<ThermoController.getNumberColumns();col++){
                 Button cell = createNewButton(null, WIDTH_HEIGHT_CELLS, WIDTH_HEIGHT_CELLS);
-                ////////////////////!!!!!!!!!!!!!!!! gridpane on ajoute d'abord le col, puis le row !!!!!!!!!!!!
+                //gridpane on ajoute d'abord le col, puis le row !!!
                 cellBoard.add(cell,col,row); //chaque bouton est ajouté dans la gridpane
                 cellMap.put(ThermoController.getCellId(row, col),cell); //la hashmap stock l'id de chaque bouton afin qu'on puisse manier le bouton par la suite
                 //grâce à son row et col
@@ -161,7 +159,7 @@ public class ThermoView implements IThermoObserver, ICellObserver {
         }
     }
 
-    public Button createNewButton(String text, int width, int heigth){
+    public Button createNewButton(String text, double width, double heigth){
         Button newButton = new Button(text);
         newButton.setPrefHeight(heigth);
         newButton.setPrefWidth(width);
@@ -197,7 +195,7 @@ public class ThermoView implements IThermoObserver, ICellObserver {
 
     @Override//Pour changer la couleur des cellules vivantes et  mortes
     //j'aurais pu ne pas mettre de boolean is deadcell et regarder si cellTemperature = -500 mais c'est pas logique, booleen mieux selon moi
-    public void updateCellColor(int row, int col, boolean isHeatCell, boolean isHeatDiffuser, boolean isDeadCell, double cellTemperature) { 
+    public void updateCellAttributes(int row, int col, boolean isHeatCell, boolean isHeatDiffuser, boolean isDeadCell, double cellTemperature) { 
         cellId = ThermoController.getCellId(row, col);
         Button buttonToChangeColor =cellMap.get(cellId);
         String stringToAddForHeatCells="";
@@ -210,21 +208,22 @@ public class ThermoView implements IThermoObserver, ICellObserver {
                 else{
                     color= getShadeOfRed(cellTemperature); //pour source chaleur activée
                 }
-                stringToAddForHeatCells="S"+heatCellsCounterMap.get(cellId)+"\n"; //Pour les sources de chaleur on ajt le numero de la source, pour les autres cellules, ce sera un string vide
+                //Pour les sources de chaleur on ajt le numero de la source, pour les autres cellules, ce sera un string vide
+                stringToAddForHeatCells="S"+heatCellsCounterMap.get(cellId)+"\n"; 
                 addHeatCellToHeatCellMap(cellId,color); //ajout dans la hashmap pour la vbox du scrollpane
             }
             else{
                 color=getShadeOfRed(cellTemperature); //Pour cellule normale
                 //si avant c'etait une sc et mtn plus, on l'enlève des hashmap de sc
-                //if(heatCellsCounterMap.containsKey(cellId))heatCellsCounterMap.remove(cellId);
-                ////si on retire le if d'avant on doit s'assurer que on change le texte de toutes les sc
+                /*
+                 * if(heatCellsCounterMap.containsKey(cellId))heatCellsCounterMap.remove(cellId);
+                 * je ne retire pas de cette liste car sinon je dois changer le texte de toutes les cellules et je n'ai pas le temps 
+                 */
+                
                 if(heatCellsMap.containsKey(cellId)){
                     Button buttonToRemove = heatCellsMap.get(cellId);
                     heatCellsMap.remove(cellId);
                     vboxHeatCellsInsideScrollPane.getChildren().remove(buttonToRemove); //faut changer le style des autres
-                    /*for (Button heatButton : heatCellsMap.values()) {
-                        heatButton = new Button()
-                    }*/
                 }
             }
             buttonToChangeColor.setText(stringToAddForHeatCells+String.format("%.1f", cellTemperature)); //1 seul chiffre après la virgule
@@ -238,7 +237,7 @@ public class ThermoView implements IThermoObserver, ICellObserver {
 
     private void addHeatCellToHeatCellMap(String cellId, String color){
         Button heatCellButton;
-        if(!heatCellsMap.containsKey(cellId)){
+        if(!heatCellsMap.containsKey(cellId)){//si la map ne contient pas la clé on l'ajoute
             heatCellsCounterMap.put(cellId,heatCellsCounterMap.size()+1); //le int du dernier element ajt=taille de la map avant l'ajout+1 car on veut pas commencer a 0  
             heatCellButton = createNewButton("S"+heatCellsCounterMap.get(cellId), WIDTH_SYSTEM_ATTRIBUTES_BUTTONS, HEIGHT_HEAT_SOURCES);
             heatCellsMap.put(cellId, heatCellButton);

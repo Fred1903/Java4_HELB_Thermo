@@ -4,12 +4,11 @@ import java.util.HashMap;
 
 public class CellFactory { /////////est-ce que factory doit etre en static ??
     private Cell cell;
-    private final int NUMBER_ROWS = ThermoController.getNumberRows();
-    private final int NUMBER_COLUMNS = ThermoController.getNumberColumns();
 
     private int probabiltyToBeDeadCell;
-    private int maxDeadCell = NUMBER_ROWS+NUMBER_COLUMNS;
-    private int minDeadCell = 0;
+    private int maxDeadCell = ThermoController.getNumberRows()+ThermoController.getNumberColumns();
+    private final int startMinDeadCell=0;
+    private int minDeadCell = startMinDeadCell;
     private int distance ;
     
     private final int ROW_POSITION_IN_MATRIX = 0;
@@ -20,9 +19,8 @@ public class CellFactory { /////////est-ce que factory doit etre en static ??
     private final int MINIMUM_NUMBER_ROWS_AND_COLUMNS = 3;
     private final int MAXIMUM_NUMBER_ROWS_AND_COLUMNS = 12;
     
-    private final int LASTROW = NUMBER_ROWS-1;
-    private final int LASTCOLUMN = NUMBER_COLUMNS-1;
-    private final int HEAT_CELL_START_TEMPERATURE = 18; 
+    private final int LASTROW = ThermoController.getNumberRows()-1;
+    private final int LASTCOLUMN = ThermoController.getNumberColumns()-1;
     private int middleRow;
     private int middleColumn;
 
@@ -52,25 +50,24 @@ public class CellFactory { /////////est-ce que factory doit etre en static ??
     }
 
     public void createCells(ThermoView thermoView){
-        for (int row = 0; row < NUMBER_ROWS; row++) {
-            for (int col = 0; col < NUMBER_COLUMNS; col++) {
+        for (int row = 0; row < ThermoController.getNumberRows(); row++) {
+            for (int col = 0; col < ThermoController.getNumberColumns(); col++) {
                 Cell cell; //= new Cell();
                 if(isCellEligibleToHeatSource(row,col)){
                     // au lieu de mettre true on peut mettre isCellEligibible(row,col) vu que return bool 
                     //cas d'une source de chaleur
-                    cell = new Cell(true,false,HEAT_CELL_START_TEMPERATURE); 
+                    cell = new Cell(true,false,ThermoController.getHeatCellStartTemperature()); 
                 }
                 else{
                     //cellFactory= new CellFactory(cell);
                     if(isCellDead(row,col)){ //si cellule morte 
-                        //-500 a enlever pour utiliser juste le boolean
                         cell=new Cell(false,true,ThermoController.getDeadCellNoTemperature());  //A LA PLACE DE 0 on doit mettre la 1ere temperature du fichier
                     }
                     else{
                         cell=new Cell(false,false,firstTemperature); //cas d'une cellule normale 
                     }
                 }
-                cell.attachCellObserver(thermoView); //a faire dans le ctrl ?
+                cell.attachCellObserver(thermoView); 
                 String cellId = ThermoController.getCellId(row,col);
                 cellMap.put(cellId,cell); //attention put pas add pour hashmap
                 cell.NotifyThermoView(row, col,cell.isHeatCell(), cell.isHeatDiffuser(), cell.isCellDead(), cell.getTemperature()); //on notifie la temperature de la cellule
@@ -92,19 +89,22 @@ public class CellFactory { /////////est-ce que factory doit etre en static ??
         return false;
     }
 
-
-
     public boolean isCellDead(int row, int col){
-        //Si le random = 15 alors cellule morte
+        System.out.print("Dans isCellDead row :"+row+" col: "+col);
+        //Si le random = col+row alors cellule morte
         //Si source de chaleur proche alors modifie le minimum -2 pour chaque source proche, comme ca moins de chance d etre morte
         int shortestDistanceToHeatCell = getShortestDistanceToHeatCell(row,col);
+        System.out.println("shortest ="+shortestDistanceToHeatCell);
         for(int i=1; i<=shortestDistanceToHeatCell;i++){//on commence a 1 pck sinon un valeur en trop
             minDeadCell ++; //plus une cellule est éloignée d'une source de chaleur, plus l'écart du random devient petit pour que plus de chance d etre morte
         }
+        minDeadCell = startMinDeadCell;
         probabiltyToBeDeadCell = (int)(Math.random()*(maxDeadCell-minDeadCell+1)+minDeadCell);
+        System.out.println(" random="+probabiltyToBeDeadCell+" min:"+minDeadCell+" max:"+maxDeadCell+" ");
         if(probabiltyToBeDeadCell==maxDeadCell){
             //cell.setDead(true);  //on set la cellule a Dead, ce n'est pas a la cellFactory de dire au controller si cellule est morte ou pas ??
             //cell.setDead a enlever car va dire dans le constructeur que dead
+            System.out.println("Est morte");
             return true;
         }
         return false;

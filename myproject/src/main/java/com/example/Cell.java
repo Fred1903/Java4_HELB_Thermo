@@ -3,22 +3,19 @@ package com.example;
 import java.util.HashMap;
 
 public class Cell implements ICellObservable{
+    private int startHeatTemperatureBeforeDesactivating=-1; //car on pourrait avoir une sc avec temp 0
+
     private double temperature; 
+    private double averageTemperature;
+    private double heatTemperatureBeforeDesactivating = startHeatTemperatureBeforeDesactivating;
 
     private boolean isHeatDiffuser=false;
     private boolean isHeatCell=false;
+    private boolean isDead=false;  
 
-    private boolean isDead=false;
-
-    private double averageTemperature;
-
-    private int startHeatTemperatureBeforeDesactivating=-1; //car on pourrait avoir une sc avec temp 0
-    private double heatTemperatureBeforeDesactivating = startHeatTemperatureBeforeDesactivating;
-
-    ICellObserver cellObserver;
+    private ICellObserver cellObserver;
 
     public Cell(){} //pour le uselessCell attention 
-
 
     public Cell(boolean isHeatDiffuser, boolean isDead, double temperature){
         this.isHeatDiffuser=isHeatDiffuser;
@@ -28,8 +25,7 @@ public class Cell implements ICellObservable{
         if(this.isHeatDiffuser){ 
             setIsHeatCell(isHeatDiffuser); //si une cellule diffuse de la chaleur (elle est active), ce sera doffice une source de chaleur
             temperature=ThermoController.getHeatCellStartTemperature() ; //quand on réactive une source de chaleur on remet ca temperature a celle de base
-        }
-        
+        }   
     }
 
     public void calculateCellTemperature(int[][] ADJACENT_ITEMS_MATRIX, double outsideTemperature,int row, int col, HashMap<String, Cell> cellMap){
@@ -97,18 +93,14 @@ public class Cell implements ICellObservable{
             if(isDead)setDead(!isHeatDiffuser);//si c'etait cellule morte alors plus mtn
             setIsHeatCell(isHeatDiffuser); //si une cellule diffuse de la chaleur (elle est active), ce sera doffice une source de chaleur
             if(heatTemperatureBeforeDesactivating!=startHeatTemperatureBeforeDesactivating){
-                System.out.println("Heat temp before desac :"+heatTemperatureBeforeDesactivating);
                 temperature = heatTemperatureBeforeDesactivating;
-                System.out.println("set temp if"); //qd je reac sc
             }
             else{
-                System.out.println("set temp else");
                 temperature=ThermoController.getHeatCellStartTemperature() ; //quand on réactive une source de chaleur on remet ca temperature a celle de base
             }
         }
         else{
             heatTemperatureBeforeDesactivating = temperature;
-            System.out.println("Je mets heatTempBefore et il est a :"+heatTemperatureBeforeDesactivating);
         }
     }
 
@@ -119,8 +111,6 @@ public class Cell implements ICellObservable{
         }
     }
 
-    
-
     public void setDead(boolean isDead) {
         this.isDead = isDead;
         if(isDead){
@@ -130,7 +120,6 @@ public class Cell implements ICellObservable{
         }
         else{
             setTemperature(averageTemperature);
-            System.out.println("temp ext :"+averageTemperature+" temp cell:"+temperature);
         }
     }
 
@@ -172,18 +161,12 @@ public class Cell implements ICellObservable{
 
     @Override
     public void NotifyThermoView(int row, int col, boolean isHeatCell, boolean isHeatDiffuser,  boolean isDeadCell, double cellTemperature) {
-        cellObserver.updateCellColor(row,col,isHeatCell, isHeatDiffuser, isDeadCell, cellTemperature);
+        cellObserver.updateCellAttributes(row,col,isHeatCell, isHeatDiffuser, isDeadCell, cellTemperature);
     }
 
     @Override
     public void attachCellObserver(ICellObserver cellObserver) {
         this.cellObserver = cellObserver;
-        
-    }
-
-    @Override
-    public void detachCellObserver(ICellObserver cellObserver) {
-        // TODO Auto-generated method stub
-        
+ 
     }
 }

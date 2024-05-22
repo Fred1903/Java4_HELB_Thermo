@@ -5,11 +5,20 @@ import java.util.HashMap;
 import java.util.List;
 
 public interface HeatCellStrategy{
-    //void determineStrategy(boolean selectedManual, boolean selectedTarget);
     void applyStrategy(Cell cell, double averageTemperature, HashMap<String, Cell> heatCellMap, int uselessNumberAliveCells);
 }
 
 class ManualStrategy implements  HeatCellStrategy{//attention on ne peut pas mettre public devant, car sinon doit faire dans un autre fichier
+    private static ManualStrategy instance ; 
+
+    private ManualStrategy(){} //Toutes les stratégies sont en singleton car on veut pas les instancier plusieurs fois
+
+    public static ManualStrategy getInstance() {
+        if (instance == null) {
+            instance = new ManualStrategy();
+        }
+        return instance;
+    }
 
     @Override
     public void applyStrategy(Cell cell, double uselessAverageTemperature, HashMap<String, Cell> uselessHeatCellMap, int numberAliveCells) {
@@ -17,18 +26,28 @@ class ManualStrategy implements  HeatCellStrategy{//attention on ne peut pas met
     }
 }
 
-
 class SuccesiveStrategy implements  HeatCellStrategy{
+    private static SuccesiveStrategy instance ; 
+
     private List<String> heatCellList = new ArrayList<String>();
     private int nextHeatCellToActivate = 0;
     private final int FIRST_INDEX_OF_LIST = 0;
     private Cell currentActivatedHeatCell;
     private boolean areHeatCellsDesactivatedAtStart=false;
     private int heatCellListLastIndex;
+
+    private SuccesiveStrategy(){}
+
+    public static SuccesiveStrategy getInstance() {
+        if (instance == null) {
+            instance = new SuccesiveStrategy();
+        }
+        return instance;
+    }
+
     @Override
     public void applyStrategy(Cell uselessCell, double uselessAverageTemperature, HashMap<String, Cell> heatCellMap, int numberAliveCells) {
         if(!areHeatCellsDesactivatedAtStart){
-            System.out.println("DEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
             for (Cell heatCell : heatCellMap.values()) { //au début de la stratégie on désactive toutes les sc
                 heatCell.setHeatDiffuser(false);
                 areHeatCellsDesactivatedAtStart=true;
@@ -63,20 +82,31 @@ class SuccesiveStrategy implements  HeatCellStrategy{
 
 
 class TargetStrategy implements HeatCellStrategy{
+    private static TargetStrategy instance ; 
+
     private double newAverageTemperature;
     private int newNumberAliveCells;
     private final int IDEAL_TEMPERATURE = 20;
+
+    private TargetStrategy(){}
+
+    public static TargetStrategy getInstance() {
+        if (instance == null) {
+            instance = new TargetStrategy();
+        }
+        return instance;
+    }
 
     @Override 
     public void applyStrategy(Cell uselessCell, double averageTemperature, HashMap<String, Cell> heatCellMap, int numberAliveCells) {
         boolean allHeatCellsActivated=false;
         boolean allHeatCellsDesactivated=false;
+        
 
         if(averageTemperature>IDEAL_TEMPERATURE){
             while(!allHeatCellsDesactivated && averageTemperature>IDEAL_TEMPERATURE){
                 for (Cell cell : heatCellMap.values()) {
                     cell.setHeatDiffuser(false);
-
                     double cellTemperature = cell.getTemperature();
                     double totalTemperatureWithoutThisCell = averageTemperature*numberAliveCells-cellTemperature;
                     //on enleve la temperature de la cellule pour voir cmb fait la moyenne sans celle-ci (probleme on devrait faire sa moyenne À elle alors ?)
@@ -92,11 +122,8 @@ class TargetStrategy implements HeatCellStrategy{
             while(!allHeatCellsActivated && averageTemperature<IDEAL_TEMPERATURE){
                 for (Cell cell : heatCellMap.values()) {
                     cell.setHeatDiffuser(true);
-
                     double cellTemperature = cell.getTemperature();
                     double totalTemperatureWithoutThisCell = averageTemperature*numberAliveCells-cellTemperature;
-
-                    //numberAliveCellsWithoutThisCell = numberAliveCells-1;
                     averageTemperature = (totalTemperatureWithoutThisCell+cellTemperature)/numberAliveCells;
                     newNumberAliveCells=numberAliveCells;
                     newAverageTemperature=averageTemperature;

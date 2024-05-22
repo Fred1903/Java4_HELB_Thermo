@@ -9,33 +9,26 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-
-import com.example.ThermoController;
-
 import javafx.geometry.Pos;
 
-//PROBLEME : Qd SC on appuie sur panneau de config et on laisse comme c est et appuie sur valider ca enleve la sc et met en cell normale...
-
-
 public class CellConfigurationView{
-    private final int minWidth = 350;
-    private final int minHeight = 450;
+    
     
     private Button submitButton;
     private boolean clickedOnDeadCell=false;
     private boolean clickedOnHeatCell=false;
-    private int choiceTemperature;
 
     private Stage window;
 
+    private final int MIN_WIDTH = 350;
+    private final int MIN_HEIGHT = 450;
     private final int SPACING_HBOX = 50;
     private final int SPACING_CONFIGURATION_VBOX = 30;
-
-    private int row;
-    private int col;
     private final int VISIBLE_ROW_COUNT = 10;  //ligne du dessous pour que si on a temp negative ca fonctionne aussi
     private final int HALF_TEMPERATURE = (ThermoController.getMaximumTemperature()-(ThermoController.getMaximumTemperature()-ThermoController.getMinimumTemperature())/2);
-    
+    private int row;
+    private int col;
+    private int choiceTemperature;
 
     public CellConfigurationView(){
         submitButton = new Button("Valider"); ///////////OBLIGER de l'instancier dans le ctor et pas dans display car sinon ca ne fonctionnera pas !!!!!!!!!!!
@@ -45,13 +38,12 @@ public class CellConfigurationView{
     public void display(int row, int col, boolean isHeatCell, boolean isDeadCell){ //Faut laisser en ou pas ?
         this.row=row;
         this.col=col;
-        //choiceTemperature = cell.getTemperature(); //On met la temperature a retourner de base=
 
         window = new Stage();        
         window.initModality(Modality.APPLICATION_MODAL); //focus sur la fenetre
         window.setTitle("Cell Configuration : ");
-        window.setMinWidth(minWidth);
-        window.setMinHeight(minHeight);
+        window.setMinWidth(MIN_WIDTH);
+        window.setMinHeight(MIN_HEIGHT);
 
         
         Label cellPositionLabel = createLabel("Position de la cellule : \nLigne : "+row+" Colonne : "+col);
@@ -88,6 +80,7 @@ public class CellConfigurationView{
         configurationLayout.setAlignment(Pos.CENTER);
 
         if(isHeatCell){//si sc, alors la case sc sera cochée, si on la déchoche ne sera plus sc
+            clickedOnHeatCell=true;
             defineAsHeatCellCheckbox.setSelected(true);
             defineAsDeadCellCheckbox.setDisable(true);
         }
