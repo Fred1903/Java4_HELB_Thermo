@@ -31,7 +31,7 @@ public class ThermoView implements IThermoObserver, ICellObserver {
     private final int TOP_HBOX_ATTRIBUTES_SPACING = 10;
     private final int VBOX_INSIDE_SCROLL_PANE_SPACING = 20;
     private final int VBOX_BORDER_SPACING = 20;
-    private final int CELL_BOARD_HGAP_AND_VGAP = 30;
+    private final int CELL_BOARD_HGAP_AND_VGAP = 20;
     private final int HEAT_SOURCES_AND_CELL_HBOX_SPACING = 50;
     private final int TIME_SETTINGS_AND_HEAT_SOURCES_VBOX_SPACING=20;
     private int counterHeatCells =0 ;
@@ -126,26 +126,19 @@ public class ThermoView implements IThermoObserver, ICellObserver {
         createScene(border);
     }
 
-    public Button getHeatCellButton(String cellId){
-        return heatCellsMap.get(cellId);
+    private void addHeatCellToHeatCellMap(String cellId, String color){
+        Button heatCellButton;
+        if(!heatCellsMap.containsKey(cellId)){//si la map ne contient pas la clé on l'ajoute
+            heatCellsCounterMap.put(cellId,heatCellsCounterMap.size()+1); //le int du dernier element ajt=taille de la map avant l'ajout+1 car on veut pas commencer a 0  
+            heatCellButton = createNewButton("S"+heatCellsCounterMap.get(cellId), WIDTH_SYSTEM_ATTRIBUTES_BUTTONS, HEIGHT_HEAT_SOURCES);
+            heatCellsMap.put(cellId, heatCellButton);
+            vboxHeatCellsInsideScrollPane.getChildren().add(heatCellButton); //On ajoute le bouton de la source de chaleur dans la vbox de la scrollpane a gauche 
+        }
+        else{
+            heatCellButton = heatCellsMap.get(cellId);
+        }
+        heatCellButton.setStyle(color);
     }
-
-    public Button getCellButton(String cellId){
-        return cellMap.get(cellId);
-    }
-
-    public Button getStartButton(){
-        return startButton;
-    }
-
-    public Button getPauseButton(){
-        return pauseButton;
-    }
-
-    public Button getResetButton(){
-        return resetButton;
-    }
-
 
     public void createCells(){
         for(int row=0; row<ThermoController.getNumberRows();row++){
@@ -172,6 +165,48 @@ public class ThermoView implements IThermoObserver, ICellObserver {
         stage.setTitle(sceneTitle);
         stage.show();
         stage.setResizable(false); //permet qu'on peut pas agrandir ou diminuer la taille de la fenetre 
+    }
+
+    public String getShadeOfRed(double temperature) {
+        /* 255 0 0  = Rouge max et 255 255 255 = blanc ---> doit que varier entre ses couleurs 
+         * Temp max = 255 0 0 et temp min= 255 255 255 
+         * --> G et B = pourcentage --- > ex : min=0 et max = 40 --> temp:35  pourcentage --> (35/40)*100 = 87,5%
+         *  G et B = 255 - (255/100)*87,5 =
+         * ---> 255 - (255*(87,5/100))
+         * 
+         * min 0 max 100 temp 50   ->gb attendu : 127,5*/
+        int rgbRedValue = 255;
+        double rgbBlueValue = 0;
+        double rgbGreenValue = 0;
+        double rgbGreenBlueValue = 255;
+
+        double totalEcart = ThermoController.getMaximumTemperature()-ThermoController.getMinimumTemperature();
+        rgbGreenBlueValue = 255-(255*(temperature/totalEcart));
+        rgbBlueValue = rgbGreenBlueValue;
+        rgbGreenValue = rgbGreenBlueValue;
+        return getColorString(rgbRedValue+","+rgbGreenValue+","+rgbBlueValue);
+    }
+
+    private String getColorString(String rgbColor){return "-fx-background-color: rgb("+rgbColor+");";}
+
+    public Button getHeatCellButton(String cellId){
+        return heatCellsMap.get(cellId);
+    }
+
+    public Button getCellButton(String cellId){
+        return cellMap.get(cellId);
+    }
+
+    public Button getStartButton(){
+        return startButton;
+    }
+
+    public Button getPauseButton(){
+        return pauseButton;
+    }
+
+    public Button getResetButton(){
+        return resetButton;
     }
 
     public String getHeatMode(){
@@ -234,40 +269,4 @@ public class ThermoView implements IThermoObserver, ICellObserver {
         }
         buttonToChangeColor.setStyle(color); //pr toutes les cellules on met une couleur
     }
-
-    private void addHeatCellToHeatCellMap(String cellId, String color){
-        Button heatCellButton;
-        if(!heatCellsMap.containsKey(cellId)){//si la map ne contient pas la clé on l'ajoute
-            heatCellsCounterMap.put(cellId,heatCellsCounterMap.size()+1); //le int du dernier element ajt=taille de la map avant l'ajout+1 car on veut pas commencer a 0  
-            heatCellButton = createNewButton("S"+heatCellsCounterMap.get(cellId), WIDTH_SYSTEM_ATTRIBUTES_BUTTONS, HEIGHT_HEAT_SOURCES);
-            heatCellsMap.put(cellId, heatCellButton);
-            vboxHeatCellsInsideScrollPane.getChildren().add(heatCellButton); //On ajoute le bouton de la source de chaleur dans la vbox de la scrollpane a gauche 
-        }
-        else{
-            heatCellButton = heatCellsMap.get(cellId);
-        }
-        heatCellButton.setStyle(color);
-    }
-
-    public String getShadeOfRed(double temperature) {
-        /* 255 0 0  = Rouge max et 255 255 255 = blanc ---> doit que varier entre ses couleurs 
-         * Temp max = 255 0 0 et temp min= 255 255 255 
-         * --> G et B = pourcentage --- > ex : min=0 et max = 40 --> temp:35  pourcentage --> (35/40)*100 = 87,5%
-         *  G et B = 255 - (255/100)*87,5 =
-         * ---> 255 - (255*(87,5/100))
-         * 
-         * min 0 max 100 temp 50   ->gb attendu : 127,5*/
-        int rgbRedValue = 255;
-        double rgbBlueValue = 0;
-        double rgbGreenValue = 0;
-        double rgbGreenBlueValue = 255;
-
-        double totalEcart = ThermoController.getMaximumTemperature()-ThermoController.getMinimumTemperature();
-        rgbGreenBlueValue = 255-(255*(temperature/totalEcart));
-        rgbBlueValue = rgbGreenBlueValue;
-        rgbGreenValue = rgbGreenBlueValue;
-        return getColorString(rgbRedValue+","+rgbGreenValue+","+rgbBlueValue);
-    }
-
-    private String getColorString(String rgbColor){return "-fx-background-color: rgb("+rgbColor+");";}
 }

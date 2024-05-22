@@ -13,16 +13,16 @@ class ManualStrategy implements  HeatCellStrategy{//attention on ne peut pas met
 
     private ManualStrategy(){} //Toutes les stratégies sont en singleton car on veut pas les instancier plusieurs fois
 
+    @Override
+    public void applyStrategy(Cell cell, double uselessAverageTemperature, HashMap<String, Cell> uselessHeatCellMap, int numberAliveCells) {
+        cell.setHeatDiffuser(!cell.isHeatDiffuser());
+    }
+
     public static ManualStrategy getInstance() {
         if (instance == null) {
             instance = new ManualStrategy();
         }
         return instance;
-    }
-
-    @Override
-    public void applyStrategy(Cell cell, double uselessAverageTemperature, HashMap<String, Cell> uselessHeatCellMap, int numberAliveCells) {
-        cell.setHeatDiffuser(!cell.isHeatDiffuser());
     }
 }
 
@@ -38,18 +38,13 @@ class SuccesiveStrategy implements  HeatCellStrategy{
 
     private SuccesiveStrategy(){}
 
-    public static SuccesiveStrategy getInstance() {
-        if (instance == null) {
-            instance = new SuccesiveStrategy();
-        }
-        return instance;
-    }
-
     @Override
     public void applyStrategy(Cell uselessCell, double uselessAverageTemperature, HashMap<String, Cell> heatCellMap, int numberAliveCells) {
         if(!areHeatCellsDesactivatedAtStart){
             for (Cell heatCell : heatCellMap.values()) { //au début de la stratégie on désactive toutes les sc
-                heatCell.setHeatDiffuser(false);
+                if(heatCell.isHeatDiffuser()){
+                    heatCell.setHeatDiffuser(false);
+                }
                 areHeatCellsDesactivatedAtStart=true;
             }
         }
@@ -63,7 +58,7 @@ class SuccesiveStrategy implements  HeatCellStrategy{
         }
         
         List<String> heatCellsToRemove = new ArrayList<String>();
-        for (String heatCellInList : heatCellList) {
+        for (String heatCellInList : heatCellList) {//on retire de la liste les cellules qui ne sont plus sc
             if (!heatCellMap.containsKey(heatCellInList)) {
                 heatCellsToRemove.add(heatCellInList);
             }
@@ -78,41 +73,37 @@ class SuccesiveStrategy implements  HeatCellStrategy{
         currentActivatedHeatCell.setHeatDiffuser(!currentActivatedHeatCell.isHeatDiffuser());//on active la prochaine sc
         nextHeatCellToActivate++;
     }
+
+    public static SuccesiveStrategy getInstance() {
+        if (instance == null) {
+            instance = new SuccesiveStrategy();
+        }
+        return instance;
+    }
 }
 
 
 class TargetStrategy implements HeatCellStrategy{
     private static TargetStrategy instance ; 
-
     private double newAverageTemperature;
-    private int newNumberAliveCells;
     private final int IDEAL_TEMPERATURE = 20;
 
     private TargetStrategy(){}
-
-    public static TargetStrategy getInstance() {
-        if (instance == null) {
-            instance = new TargetStrategy();
-        }
-        return instance;
-    }
 
     @Override 
     public void applyStrategy(Cell uselessCell, double averageTemperature, HashMap<String, Cell> heatCellMap, int numberAliveCells) {
         boolean allHeatCellsActivated=false;
         boolean allHeatCellsDesactivated=false;
-        
+        int numberAliveCellsWithoutThisCell = numberAliveCells-1;
 
-        if(averageTemperature>IDEAL_TEMPERATURE){
+        if(averageTemperature>IDEAL_TEMPERATURE){//si la temp est au dessus de 20
             while(!allHeatCellsDesactivated && averageTemperature>IDEAL_TEMPERATURE){
                 for (Cell cell : heatCellMap.values()) {
                     cell.setHeatDiffuser(false);
                     double cellTemperature = cell.getTemperature();
                     double totalTemperatureWithoutThisCell = averageTemperature*numberAliveCells-cellTemperature;
-                    //on enleve la temperature de la cellule pour voir cmb fait la moyenne sans celle-ci (probleme on devrait faire sa moyenne À elle alors ?)
-                    int numberAliveCellsWithoutThisCell = numberAliveCells-1;
+                    //on enleve la temperature de la cellule pour voir cmb fait la moyenne sans celle-ci 
                     averageTemperature = totalTemperatureWithoutThisCell/numberAliveCellsWithoutThisCell;
-                    newNumberAliveCells=numberAliveCellsWithoutThisCell;
                     newAverageTemperature=averageTemperature;
                 } 
                 allHeatCellsDesactivated=true;
@@ -125,12 +116,18 @@ class TargetStrategy implements HeatCellStrategy{
                     double cellTemperature = cell.getTemperature();
                     double totalTemperatureWithoutThisCell = averageTemperature*numberAliveCells-cellTemperature;
                     averageTemperature = (totalTemperatureWithoutThisCell+cellTemperature)/numberAliveCells;
-                    newNumberAliveCells=numberAliveCells;
                     newAverageTemperature=averageTemperature;
                 }
                 allHeatCellsActivated=true;
             }
         }
+    }
+
+    public static TargetStrategy getInstance() {
+        if (instance == null) {
+            instance = new TargetStrategy();
+        }
+        return instance;
     }
 
     public double getNewAverageTemperature(){

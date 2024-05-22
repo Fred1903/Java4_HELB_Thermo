@@ -16,7 +16,7 @@ public class ExterioreTemperatureParserTest {
     String valueInString;
     int value;
     String [] correctValuesArray = {"15","40","0","26"};
-    String [] falseValuesArray = {"2,6","besiktas","41","-2"};
+    String [] incorrectValuesArray = {"2,6","besiktas","41","-2"};
 
 
 
@@ -29,24 +29,17 @@ public class ExterioreTemperatureParserTest {
             valueInString = correctValue;
             value = Integer.valueOf(correctValue);
             scanner = new Scanner(valueInString);
-            //exteriorTemperatureParser.checkValue(scanner);
-            assertTrue(exteriorTemperatureParser.checkValue(scanner));
-            //assertEquals(value, exteriorTemperatureParser.getExteriorTemperaturesList().get(cpt++).getExteriorTemperature()); //0 car on a ajt que 1 element     
-        } 
-        
+            assertTrue(exteriorTemperatureParser.checkValue(scanner));     
+        }  
     }
 
-    //REMARQUE PROF : tableau pour tester plusieurs valeurs ok, par contre changer checkValue pour que renvoie un bool
-    //TESTER LE BOOL RENVOYÉ !!!!!!!!!!!!!!
+
     @Test
     public void checkValueShouldNotAddNewExteriorTemperatureToExteriorTemperatureList(){
-        valueInString = "7,5";
-        scanner = new Scanner(valueInString);
-        assertFalse(exteriorTemperatureParser.checkValue(scanner));
-        //exteriorTemperatureParser.checkValue(scanner);
-        //assertTrue(exteriorTemperatureParser.getExteriorTemperaturesList().isEmpty()); //si vide veut dire que ne l'a pas ajouté
+        for(String incorrectValue : incorrectValuesArray){
+            valueInString = incorrectValue;
+            scanner = new Scanner(valueInString);
+            assertFalse(exteriorTemperatureParser.checkValue(scanner));
+        }
     }
-    
- 
-
 }

@@ -5,38 +5,32 @@ import java.util.HashMap;
 public class CellFactory { /////////est-ce que factory doit etre en static ??
     private Cell cell;
 
-    private int probabiltyToBeDeadCell;
-    private int maxDeadCell = ThermoController.getNumberRows()+ThermoController.getNumberColumns();
     private final int startMinDeadCell=0;
-    private int minDeadCell = startMinDeadCell;
-    private int distance ;
-    
     private final int ROW_POSITION_IN_MATRIX = 0;
     private final int COL_POSITION_IN_MATRIX = 1;
-
-
     private final int FIRST_ROW_COL = 0;
-    private final int MINIMUM_NUMBER_ROWS_AND_COLUMNS = 3;
-    private final int MAXIMUM_NUMBER_ROWS_AND_COLUMNS = 12;
-    
     private final int LASTROW = ThermoController.getNumberRows()-1;
     private final int LASTCOLUMN = ThermoController.getNumberColumns()-1;
+    private int probabiltyToBeDeadCell;
+    private int maxDeadCell = ThermoController.getNumberRows()+ThermoController.getNumberColumns();
+    private int minDeadCell = startMinDeadCell;
+    private int distance ;
     private int middleRow;
     private int middleColumn;
-
-    private HashMap<String,Cell> cellMap = new HashMap<String,Cell>();
-
-    //private ThermoController thermoController = new ThermoController(null);
-
-    private int[][] heatSources; //ThermoController.getStartHeatSources();
-    
     private int firstTemperature;
 
-    public void setHeatSources(int[][]heatSources){
-        this.heatSources=heatSources;
-    }
+    private int[][] heatSources; 
+
+    private HashMap<String,Cell> cellMap = new HashMap<String,Cell>();    
+
+    
     public CellFactory(int firstTemperature){
         this.firstTemperature = firstTemperature;
+    }
+
+    //méthode calculant la distance entre deux cases
+    private int calculateManhattanDistance(int rowCell, int colCell, int rowHeatCell, int colHeatCell) { 
+        return Math.abs(rowCell - rowHeatCell) + Math.abs(colCell - colHeatCell);
     }
 
     //Regarde si la case qu'on a donné en paramètre est la case du milieu
@@ -53,18 +47,15 @@ public class CellFactory { /////////est-ce que factory doit etre en static ??
         for (int row = 0; row < ThermoController.getNumberRows(); row++) {
             for (int col = 0; col < ThermoController.getNumberColumns(); col++) {
                 Cell cell; //= new Cell();
-                if(isCellEligibleToHeatSource(row,col)){
-                    // au lieu de mettre true on peut mettre isCellEligibible(row,col) vu que return bool 
-                    //cas d'une source de chaleur
+                if(isCellEligibleToHeatSource(row,col)){//cas d'une source de chaleur
                     cell = new Cell(true,false,ThermoController.getHeatCellStartTemperature()); 
                 }
                 else{
-                    //cellFactory= new CellFactory(cell);
                     if(isCellDead(row,col)){ //si cellule morte 
-                        cell=new Cell(false,true,ThermoController.getDeadCellNoTemperature());  //A LA PLACE DE 0 on doit mettre la 1ere temperature du fichier
+                        cell=new Cell(false,true,ThermoController.getDeadCellNoTemperature());
                     }
-                    else{
-                        cell=new Cell(false,false,firstTemperature); //cas d'une cellule normale 
+                    else{  //cas d'une cellule normale 
+                        cell=new Cell(false,false,firstTemperature);
                     }
                 }
                 cell.attachCellObserver(thermoView); 
@@ -73,41 +64,10 @@ public class CellFactory { /////////est-ce que factory doit etre en static ??
                 cell.NotifyThermoView(row, col,cell.isHeatCell(), cell.isHeatDiffuser(), cell.isCellDead(), cell.getTemperature()); //on notifie la temperature de la cellule
             }
         }
-    }
+    }        
 
     public HashMap<String,Cell> getCellMap(){
         return cellMap;
-    }
-
-    //On verifie si la cellule est dans un des 4 coins ou au milieu, au milieu pas encore verif
-    public boolean isCellEligibleToHeatSource(int row, int col){
-        //Est-ce que c'est considéré comme de la répétition de code ?
-        if((row == FIRST_ROW_COL && col == FIRST_ROW_COL) || (row==FIRST_ROW_COL && col == LASTCOLUMN) ||
-            (row==LASTROW && col==FIRST_ROW_COL) || (row==LASTROW && col==LASTCOLUMN) || checkIfMiddle(row,col)){
-                return true;
-        }
-        return false;
-    }
-
-    public boolean isCellDead(int row, int col){
-        System.out.print("Dans isCellDead row :"+row+" col: "+col);
-        //Si le random = col+row alors cellule morte
-        //Si source de chaleur proche alors modifie le minimum -2 pour chaque source proche, comme ca moins de chance d etre morte
-        int shortestDistanceToHeatCell = getShortestDistanceToHeatCell(row,col);
-        System.out.println("shortest ="+shortestDistanceToHeatCell);
-        for(int i=1; i<=shortestDistanceToHeatCell;i++){//on commence a 1 pck sinon un valeur en trop
-            minDeadCell ++; //plus une cellule est éloignée d'une source de chaleur, plus l'écart du random devient petit pour que plus de chance d etre morte
-        }
-        minDeadCell = startMinDeadCell;
-        probabiltyToBeDeadCell = (int)(Math.random()*(maxDeadCell-minDeadCell+1)+minDeadCell);
-        System.out.println(" random="+probabiltyToBeDeadCell+" min:"+minDeadCell+" max:"+maxDeadCell+" ");
-        if(probabiltyToBeDeadCell==maxDeadCell){
-            //cell.setDead(true);  //on set la cellule a Dead, ce n'est pas a la cellFactory de dire au controller si cellule est morte ou pas ??
-            //cell.setDead a enlever car va dire dans le constructeur que dead
-            System.out.println("Est morte");
-            return true;
-        }
-        return false;
     }
 
     //Méthode retournant la distance minimale entre une cellule et une source de chaleur
@@ -122,10 +82,29 @@ public class CellFactory { /////////est-ce que factory doit etre en static ??
         return shortestDistance;
     }
 
-    //méthode calculant la distance entre deux cases
-    private int calculateManhattanDistance(int rowCell, int colCell, int rowHeatCell, int colHeatCell) { 
-        return Math.abs(rowCell - rowHeatCell) + Math.abs(colCell - colHeatCell);
+    public boolean isCellDead(int row, int col){
+        //Si le random = col+row alors cellule morte
+        //Si source de chaleur éloignée alors modifie le minimum +1 pour chaque case entre, comme ca plus de chance d etre morte
+        int shortestDistanceToHeatCell = getShortestDistanceToHeatCell(row,col);
+        for(int i=1; i<=shortestDistanceToHeatCell;i++){//on commence a 1 pck sinon un valeur en trop
+            minDeadCell ++; //plus une cellule est éloignée d'une source de chaleur, plus l'écart du random devient petit pour que plus de chance d etre morte
+        }
+        minDeadCell = startMinDeadCell;
+        probabiltyToBeDeadCell = (int)(Math.random()*(maxDeadCell-minDeadCell+1)+minDeadCell);
+        if(probabiltyToBeDeadCell==maxDeadCell)return true;
+        return false;
     }
 
-     
+    //On verifie si la cellule est dans un des 4 coins ou au milieu, au milieu pas encore verif
+    public boolean isCellEligibleToHeatSource(int row, int col){
+        if((row == FIRST_ROW_COL && col == FIRST_ROW_COL) || (row==FIRST_ROW_COL && col == LASTCOLUMN) ||
+            (row==LASTROW && col==FIRST_ROW_COL) || (row==LASTROW && col==LASTCOLUMN) || checkIfMiddle(row,col)){
+                return true;
+        }
+        return false;
+    }
+
+    public void setHeatSources(int[][]heatSources){
+        this.heatSources=heatSources;
+    } 
 }

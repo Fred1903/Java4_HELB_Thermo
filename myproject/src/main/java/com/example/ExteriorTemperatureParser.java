@@ -22,17 +22,29 @@ public class ExteriorTemperatureParser {
         maxIndex = exteriorTemperaturesList.size();
     }
 
-    public Integer getNexExteriorTemperature(){
-        //si le currentIndex est avant l'avant-dernière valeur alors on renvoie currentindex ++, sinon juste currentIndex car sinon indexOutOfBonds 
-        if(hasNextTemperature() && (currentIndex+one)<maxIndex){
-            Integer temp=exteriorTemperaturesList.get(currentIndex);
-            currentIndex++;
-            return temp;}  //affiche 0 2 4 6 et index++ affiche 0 1 3 5 ..  //on peut refactorisé ce code !!!!!
-        return exteriorTemperaturesList.get(currentIndex);
+    public boolean checkValue(Scanner scannerOfLine){
+        if(scannerOfLine.hasNextInt()){ //si la prochaine valeur est un int alors on rentre dans le if 
+            int temperature = scannerOfLine.nextInt();
+            if(temperature>=MINIMUM_EXTERIOR_TEMPERATURE && temperature <= MAXIMUM_EXTERIOR_TEMPERATURE){
+                exteriorTemperaturesList.add(temperature); //si ok alors on ajoute a notre liste de températures
+                return true;
+            }
+        }
+        return false;
     }
 
     public ArrayList<Integer> getExteriorTemperaturesList(){
         return exteriorTemperaturesList;
+    }
+
+    public Integer getNexExteriorTemperature(){
+        //si le currentIndex est avant l'avant-dernière valeur alors on renvoie currentindex ++, sinon juste currentIndex car sinon indexOutOfBonds 
+        if(hasNextTemperature() && (currentIndex+one)<maxIndex) return exteriorTemperaturesList.get(currentIndex++);
+        return exteriorTemperaturesList.get(currentIndex);
+    }    
+
+    public int getFirstTemperature(){
+        return exteriorTemperaturesList.get(firstIndexOfList);
     }
 
     //true si on a pas déjà eu toutes les temperatures exterieures
@@ -46,17 +58,6 @@ public class ExteriorTemperatureParser {
                 String line = scanner.nextLine();
                 try(Scanner scannerOfLine = new Scanner(line)){ //dans ce scanner on va avoir la valeur de chaque ligne en particulier
                     checkValue(scannerOfLine);
-                        //int temperature = scannerOfLine.nextInt();
-                        //ExteriorTemperature exteriorTemperature = new ExteriorTemperature(scannerOfLine.nextInt());
-                        //exteriorTemperaturesList.add(exteriorTemperature); //si ok alors on ajoute a notre liste de températures
-                    
-                    /*if(scannerOfLine.hasNextInt()){ //si la prochaine valeur est un int alors on rentre dans le if 
-                        int temperature = scannerOfLine.nextInt();
-                        if(temperature>=MINIMUM_EXTERIOR_TEMPERATURE && temperature <= MAXIMUM_EXTERIOR_TEMPERATURE){
-                            ExteriorTemperature exteriorTemperature = new ExteriorTemperature(temperature);
-                            exteriorTemperaturesList.add(exteriorTemperature); //si ok alors on ajoute a notre liste de températures
-                        }
-                    }*/
                 }
                 catch(NoSuchElementException exception){ //NoSuchElementException est l'erreur que j'avais dans mon terminal avec IoException ca crash
                     System.err.println("Error reading the line : "+line);
@@ -66,21 +67,5 @@ public class ExteriorTemperatureParser {
         catch(IOException exception){
             System.err.println("Error reading the file : "+exception.getMessage());
         }
-    }
-
-    public boolean checkValue(Scanner scannerOfLine){
-        if(scannerOfLine.hasNextInt()){ //si la prochaine valeur est un int alors on rentre dans le if 
-            int temperature = scannerOfLine.nextInt();
-            if(temperature>=MINIMUM_EXTERIOR_TEMPERATURE && temperature <= MAXIMUM_EXTERIOR_TEMPERATURE){
-                //Integer exteriorTemperature = temperature;
-                exteriorTemperaturesList.add(temperature); //si ok alors on ajoute a notre liste de températures
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public int getFirstTemperature(){
-        return exteriorTemperaturesList.get(firstIndexOfList);
     }
 }

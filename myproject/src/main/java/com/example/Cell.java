@@ -28,6 +28,11 @@ public class Cell implements ICellObservable{
         }   
     }
 
+    @Override
+    public void attachCellObserver(ICellObserver cellObserver) {
+        this.cellObserver = cellObserver; 
+    }
+
     public void calculateCellTemperature(int[][] ADJACENT_ITEMS_MATRIX, double outsideTemperature,int row, int col, HashMap<String, Cell> cellMap){
             if(!isHeatDiffuser && !isDead){
                 //La 9ieme temperature est celle de la cellule meme qu'on peut directement recuperer dans la classe cell
@@ -41,17 +46,6 @@ public class Cell implements ICellObservable{
                 calculateTemperature(adjacentItemsTemperatures);   
             }
             NotifyThermoView(row, col,isHeatCell, isHeatDiffuser, isDead, temperature); //on notifie la temperature de la cellule
-    }
-    
-    private double getTemperatureOfAdjacentItem(int row, int col, double outsideTemperature, HashMap<String, Cell> cellMap){
-        Cell cellNextTo = cellMap.get(ThermoController.getCellId(row, col));
-        //si l'id de la case est dans la hashmap alors c'est une cellule et on renvoie sa temperature, sinon c'est a l'exterieur et on renvoie temp ext.
-        if(cellNextTo != null){
-            return cellNextTo.getTemperature();
-        }
-        else{
-            return outsideTemperature;
-        }
     }
 
     private void calculateTemperature(double [] adjacentItemsTemperatures){
@@ -69,11 +63,17 @@ public class Cell implements ICellObservable{
     public double getTemperature() {
         return temperature;
     }
-
-    public void setTemperature(double temperature) {
-        this.temperature = temperature;
+    
+    private double getTemperatureOfAdjacentItem(int row, int col, double outsideTemperature, HashMap<String, Cell> cellMap){
+        Cell cellNextTo = cellMap.get(ThermoController.getCellId(row, col));
+        //si l'id de la case est dans la hashmap alors c'est une cellule et on renvoie sa temperature, sinon c'est a l'exterieur et on renvoie temp ext.
+        if(cellNextTo != null){
+            return cellNextTo.getTemperature();
+        }
+        else{
+            return outsideTemperature;
+        }
     }
-
 
     public boolean isHeatDiffuser() { //Attentions aux noms!!
         return isHeatDiffuser;
@@ -87,21 +87,25 @@ public class Cell implements ICellObservable{
         return isDead;
     }
 
+    @Override
+    public void NotifyThermoView(int row, int col, boolean isHeatCell, boolean isHeatDiffuser,  boolean isDeadCell, double cellTemperature) {
+        cellObserver.updateCellAttributes(row,col,isHeatCell, isHeatDiffuser, isDeadCell, cellTemperature);
+    }
+
     public void setHeatDiffuser(boolean isHeatDiffuser) {
-        this.isHeatDiffuser = isHeatDiffuser;
-        if(isHeatDiffuser){
-            if(isDead)setDead(!isHeatDiffuser);//si c'etait cellule morte alors plus mtn
-            setIsHeatCell(isHeatDiffuser); //si une cellule diffuse de la chaleur (elle est active), ce sera doffice une source de chaleur
-            if(heatTemperatureBeforeDesactivating!=startHeatTemperatureBeforeDesactivating){
-                temperature = heatTemperatureBeforeDesactivating;
+        if(this.isHeatDiffuser != isHeatDiffuser) {
+            this.isHeatDiffuser = isHeatDiffuser;
+            if(isHeatDiffuser){///Code qui s'effectue lorsque une cellule vient de passer À diffuseur de chaleur
+                if(isDead)setDead(!isHeatDiffuser);//si c'etait cellule morte alors plus mtn
+                setIsHeatCell(isHeatDiffuser); //si une cellule diffuse de la chaleur (elle est active), ce sera doffice une source de chaleur
+                if(heatTemperatureBeforeDesactivating!=startHeatTemperatureBeforeDesactivating){
+                    temperature = heatTemperatureBeforeDesactivating;
+                }
             }
-            else{
-                temperature=ThermoController.getHeatCellStartTemperature() ; //quand on réactive une source de chaleur on remet ca temperature a celle de base
+            else{//quand on desac sc , tempBefore = temp
+                heatTemperatureBeforeDesactivating = temperature;
             }
-        }
-        else{
-            heatTemperatureBeforeDesactivating = temperature;
-        }
+        }  
     }
 
     public void setIsHeatCell(boolean isHeatCell){
@@ -123,6 +127,9 @@ public class Cell implements ICellObservable{
         }
     }
 
+    public void setTemperature(double temperature) {
+        this.temperature = temperature;
+    }
 
     public int updateCell(boolean isClickedOnDeadCell, boolean isClickedOnHeatCell, double choiceTemperature, double averageTemperature){
         this.averageTemperature = averageTemperature;
@@ -144,7 +151,10 @@ public class Cell implements ICellObservable{
                 setIsHeatCell(!isHeatCell);
             }
             else{
-                if(choiceTemperature!=temperature)setTemperature(choiceTemperature);
+                if(choiceTemperature!=temperature){
+                    setTemperature(choiceTemperature);
+                    heatTemperatureBeforeDesactivating=temperature;
+                }
             }
         }
         else{
@@ -153,20 +163,10 @@ public class Cell implements ICellObservable{
                     //on pourrait faire les 2 lignes ci-dessous sans le if mais alors on va aussi faire pour des sources de chaleur et donc gaspillage de ressources
                     setHeatDiffuser(isClickedOnHeatCell);
                     setTemperature(choiceTemperature);
+                    heatTemperatureBeforeDesactivating=temperature;
                 } 
             }
         } 
         return numberAliveCellsChanges;
-    }
-
-    @Override
-    public void NotifyThermoView(int row, int col, boolean isHeatCell, boolean isHeatDiffuser,  boolean isDeadCell, double cellTemperature) {
-        cellObserver.updateCellAttributes(row,col,isHeatCell, isHeatDiffuser, isDeadCell, cellTemperature);
-    }
-
-    @Override
-    public void attachCellObserver(ICellObserver cellObserver) {
-        this.cellObserver = cellObserver;
- 
     }
 }

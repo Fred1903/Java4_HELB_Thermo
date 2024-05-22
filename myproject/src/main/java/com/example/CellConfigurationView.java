@@ -34,6 +34,16 @@ public class CellConfigurationView{
         submitButton = new Button("Valider"); ///////////OBLIGER de l'instancier dans le ctor et pas dans display car sinon ca ne fonctionnera pas !!!!!!!!!!!
     }
 
+    private Label createLabel(String text){
+        Label label = new Label(text);
+        label.setStyle("-fx-border-color: black; -fx-border-width: 2px; -fx-padding:30px; -fx-border-radius:15px; -fx-margin:30px");
+        return label;
+    }
+
+    public void closeWindow(){
+        window.close();
+    }
+
     //Cell a enlever car apres va faire logique cote modele on veut pas
     public void display(int row, int col, boolean isHeatCell, boolean isDeadCell){ //Faut laisser en ou pas ?
         this.row=row;
@@ -44,8 +54,7 @@ public class CellConfigurationView{
         window.setTitle("Cell Configuration : ");
         window.setMinWidth(MIN_WIDTH);
         window.setMinHeight(MIN_HEIGHT);
-
-        
+     
         Label cellPositionLabel = createLabel("Position de la cellule : \nLigne : "+row+" Colonne : "+col);
         Label defineAsDeadCellLabel = createLabel("Définir comme cellule morte");
         Label defineAsHeatCellLabel = createLabel("Définir comme source de chaleur");
@@ -65,7 +74,6 @@ public class CellConfigurationView{
         defineAsDeadCellCheckbox.setStyle("-fx-border-color: black; -fx-border-width: 2px; -fx-padding:30px; -fx-border-radius:15px;");
         CheckBox defineAsHeatCellCheckbox = new CheckBox();
         defineAsHeatCellCheckbox.setStyle("-fx-border-color: black; -fx-border-width: 2px; -fx-padding:30px; -fx-border-radius:15px;");
-
 
         HBox defineAsDeadCellHbox = new HBox(SPACING_HBOX);
         HBox defineAsHeatCellHbox = new HBox(SPACING_HBOX);
@@ -88,7 +96,6 @@ public class CellConfigurationView{
             defineAsDeadCellCheckbox.setSelected(true);
             defineAsHeatCellCheckbox.setDisable(true);
         }
-
 
         defineAsDeadCellCheckbox.setOnAction(event -> {
             if (defineAsDeadCellCheckbox.isSelected()) { //si checkbox sélectionné, l'autre n'est pas sélectionnable
@@ -127,6 +134,10 @@ public class CellConfigurationView{
         return ThermoController.getCellId(row, col);
     }
 
+    public int getChoiceTemperature() {
+        return choiceTemperature;
+    }
+
     public Button getSubmitButton(){
         return submitButton;
     }
@@ -137,19 +148,5 @@ public class CellConfigurationView{
 
     public boolean isClickedOnHeatCell() {
         return clickedOnHeatCell;
-    }
-
-    public int getChoiceTemperature() {
-        return choiceTemperature;
-    }
-
-    private Label createLabel(String text){
-        Label label = new Label(text);
-        label.setStyle("-fx-border-color: black; -fx-border-width: 2px; -fx-padding:30px; -fx-border-radius:15px; -fx-margin:30px");
-        return label;
-    }
-
-    public void closeWindow(){
-        window.close();
     }
 }

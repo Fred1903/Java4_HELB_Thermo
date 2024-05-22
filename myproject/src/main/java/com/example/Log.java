@@ -14,8 +14,6 @@ public class Log{
     private LocalDateTime currentDateTime;
     private File logFile; 
     private File directoryfile;
-    
-
 
     public void addLog(int time, double exteriorTemperature, double averageTemperature){ //faut ajouter le cout aussi mais pas encore fait
         allLogs += time+";"+String.format("%.1f", averageTemperature)+";"+exteriorTemperature+"\n";
@@ -41,6 +39,4 @@ public class Log{
             System.out.println("error when creating file");
         }
     }
-
-
 }

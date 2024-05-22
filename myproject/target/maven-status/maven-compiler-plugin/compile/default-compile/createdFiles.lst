@@ -1,7 +1,5 @@
 com/example/Cell.class
-com/example/DeadCell.class
 com/example/Log.class
-com/example/AliveCell.class
 com/example/TargetStrategy.class
 com/example/CellFactory.class
 com/example/IThermoObserver.class
