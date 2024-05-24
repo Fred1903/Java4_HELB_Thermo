@@ -34,17 +34,14 @@ public class ThermoController implements IThermoObservable {
     private final static int FIRST_ROW_COL = 0;
     private final static int MINIMUM_NUMBER_ROWS_AND_COLUMNS = 3;
     private final static int MAXIMUM_NUMBER_ROWS_AND_COLUMNS = 12;
-    private final static int NUMBER_ROWS =4;
-    private final static int NUMBER_COLUMNS = 5;
+    private final static int NUMBER_ROWS = 4;
+    private final static int NUMBER_COLUMNS = 4;
     private final static int LASTROW = NUMBER_ROWS-1;
     private final static int LASTCOLUMN = NUMBER_COLUMNS-1;
     private final static int DEAD_CELL_NO_TEMPERATURE = -500; //cellule morte n'a pas de temperature mais comme un int ne peut pas etre 'null' on va lui mettre -500
-    private final static int ESTIMATED_MIN_TEMPERATURE = 0;
-    private final static int ESTIMATED_MAX_TEMPERATURE = 50;
-    private final static int DISTANCE_MIN_MAX_TEMPERATURE = ESTIMATED_MAX_TEMPERATURE-(+ESTIMATED_MIN_TEMPERATURE);
-    private final static int ESTIMATED_MEDIAN_TEMPERATURE = DISTANCE_MIN_MAX_TEMPERATURE/2;
     private final static int MAXIMUM_TEMPERATURE = 100;
     private final static int MINIMUM_TEMPERATURE = 0;
+    private final static int GAP_BETWEEN_MIN_MAX_TEMPERATURE = MAXIMUM_TEMPERATURE-MINIMUM_TEMPERATURE;
     private final int ROW_POSITION_IN_MATRIX = 0;
     private final int COL_POSITION_IN_MATRIX = 1;
     private final int [][] ADJACENT_ITEMS_MATRIX = {{-1,0},{-1,-1},{-1,1},{0,-1},{0,1},{1,0},{1,1},{1,-1}} ; //a gauche row et a droite col
@@ -111,8 +108,7 @@ public class ThermoController implements IThermoObservable {
             primaryStage.setOnCloseRequest(e ->{ //quand on ferme l'app on créé le fichier log
                 log.createLogFile(); 
             });
-        }
-        
+        } 
     }
 
     @Override
@@ -153,7 +149,6 @@ public class ThermoController implements IThermoObservable {
                     if(currentStrategy.equals(MANUAL_MODE_STRING)){
                         if(thermoView.getHeatCellButton(getCellId(row, col))!=null){//doit faire ce if car lorsque créer sc, pas encore dans heatCellbtn
                             thermoView.getHeatCellButton(getCellId(row, col)).setOnAction(e -> {//lorsque un click est effectué sur une sc a gauche
-                                System.out.println("Dans ctrll stAction");
                                 heatCellStrategy.applyStrategy(cell, averageTemperature, heatCellMap, numberAliveCells);
                                 if(cell.isHeatDiffuser()){//qd sc activée on la met dans la liste
                                     heatCellSecondsList.add(getCellId(rowCopy,colCopy));
@@ -183,7 +178,6 @@ public class ThermoController implements IThermoObservable {
                 if(cell.isHeatDiffuser() && !heatCellMap.containsKey(cellConfigurationView.getCellId())){//qd sc activée via panneau config on la met dans la liste  //attention duplication !!!!!!!!!
                     heatCellSecondsList.add(cellConfigurationView.getCellId());
                     heatCellMap.put(cellConfigurationView.getCellId(),cell);
-                    checkChanges();
                 }
                 //si on a enlevé la sc on la retire de la map des sc et des secondes sc
                 else if(!cell.isHeatCell() && heatCellMap.containsKey(cellConfigurationView.getCellId())){
@@ -217,16 +211,12 @@ public class ThermoController implements IThermoObservable {
         return DEAD_CELL_NO_TEMPERATURE;
     }
 
-    public static int getDistanceMinMaxTemperature() {
-        return DISTANCE_MIN_MAX_TEMPERATURE;
-    }
-
-    public static int getEstimatedMedianTemperature() {
-        return ESTIMATED_MEDIAN_TEMPERATURE;
-    }
-
     public static int getHeatCellStartTemperature() {
         return HEAT_CELL_START_TEMPERATURE;
+    }
+
+    public static int getGapBetweenMinMaxTemperature() {
+        return GAP_BETWEEN_MIN_MAX_TEMPERATURE;
     }
 
     public static String getManualModeString() {
@@ -287,12 +277,10 @@ public class ThermoController implements IThermoObservable {
         attach(thermoView);//on met la vue comme observer
 
         if(!areCellsCreated){//creation des cellules
-            cellFactory=new CellFactory(firstTemperature);
-            cellFactory.setHeatSources(startHeatSources); //important de le faire avant la création des cellules
-            cellFactory.createCells(thermoView); //on veut creer les cellules que une seule fois au debut
+            cellFactory=new CellFactory(firstTemperature, startHeatSources, thermoView);
             cellMap = cellFactory.getCellMap();
-            
             areCellsCreated=true;
+            
         }  
         //Lorsque le bouton start dans la vue a été cliqué, ...
         thermoView.getStartButton().setOnAction(e -> {

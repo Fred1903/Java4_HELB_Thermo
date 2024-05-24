@@ -24,8 +24,10 @@ public class CellFactory { /////////est-ce que factory doit etre en static ??
     private HashMap<String,Cell> cellMap = new HashMap<String,Cell>();    
 
     
-    public CellFactory(int firstTemperature){
+    public CellFactory(int firstTemperature, int[][]heatSources, ThermoView thermoView){
         this.firstTemperature = firstTemperature;
+        this.heatSources=heatSources;
+        createCells(thermoView);
     }
 
     //méthode calculant la distance entre deux cases
@@ -46,7 +48,7 @@ public class CellFactory { /////////est-ce que factory doit etre en static ??
     public void createCells(ThermoView thermoView){
         for (int row = 0; row < ThermoController.getNumberRows(); row++) {
             for (int col = 0; col < ThermoController.getNumberColumns(); col++) {
-                Cell cell; //= new Cell();
+                Cell cell;
                 if(isCellEligibleToHeatSource(row,col)){//cas d'une source de chaleur
                     cell = new Cell(true,false,ThermoController.getHeatCellStartTemperature()); 
                 }
@@ -103,8 +105,4 @@ public class CellFactory { /////////est-ce que factory doit etre en static ??
         }
         return false;
     }
-
-    public void setHeatSources(int[][]heatSources){
-        this.heatSources=heatSources;
-    } 
 }

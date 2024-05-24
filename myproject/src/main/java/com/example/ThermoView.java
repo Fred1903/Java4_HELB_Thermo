@@ -22,8 +22,8 @@ import javafx.stage.Stage;
 public class ThermoView implements IThermoObserver, ICellObserver {
     private Stage stage;
     
-    private final int WIDTH_SCENE = 1500 ;
-    private final int HEIGHT_SCENE = 850 ;
+    private final int WIDTH_SCENE = 1500;
+    private final int HEIGHT_SCENE = 850;
     private final int WIDTH_SYSTEM_ATTRIBUTES_BUTTONS = 150;
     private final int HEIGHT_TOP_ATTRIBUTES_BUTTONS = 40;
     private final int WIDTH_HEIGHT_TIME_SETTINGS_BUTTONS = 50;
@@ -31,15 +31,15 @@ public class ThermoView implements IThermoObserver, ICellObserver {
     private final int TOP_HBOX_ATTRIBUTES_SPACING = 10;
     private final int VBOX_INSIDE_SCROLL_PANE_SPACING = 20;
     private final int VBOX_BORDER_SPACING = 20;
-    private final int CELL_BOARD_HGAP_AND_VGAP = 20;
+    private final int CELL_BOARD_HGAP_AND_VGAP = 15;
     private final int HEAT_SOURCES_AND_CELL_HBOX_SPACING = 50;
     private final int TIME_SETTINGS_AND_HEAT_SOURCES_VBOX_SPACING=20;
     private int counterHeatCells =0 ;
     private int startNumberSeconds=0;
 
-    private final double SCROLLPANE_PREF_HEIGHT=HEIGHT_SCENE*0.75;//80% de la hauteur de la fenetre
-    private final double CELL_BOARD_PREF_HEIGHT = HEIGHT_SCENE*0.75;
-    private final double CELL_BOARD_PREF_WIDTH = WIDTH_SCENE*0.75;
+    private final double SCROLLPANE_PREF_HEIGHT=HEIGHT_SCENE*0.8;//80% de la hauteur de la fenetre
+    private final double CELL_BOARD_PREF_HEIGHT = HEIGHT_SCENE*0.8;
+    private final double CELL_BOARD_PREF_WIDTH = WIDTH_SCENE*0.835;
     /*Calcul : Aire du cellBoard = cellBoardPrefWidth*cellBoardPrefHeight
                nombre de cases total = numberRows*numberCols
                aire d'une seule case = AireCellBoard/nbrCases
@@ -77,6 +77,7 @@ public class ThermoView implements IThermoObserver, ICellObserver {
     private HashMap<String,Button> cellMap= new HashMap<String,Button>(); //CellId(Ex Row=10 et col =8 ---> "R10C8"), btn
     private HashMap<String, Button> heatCellsMap = new HashMap<String, Button>(); //cellId, btn
     private HashMap<String, Integer> heatCellsCounterMap = new HashMap<String,Integer>(); //cellId,counter
+    //private HashMap<String, String> 
     
  
     public ThermoView(Stage stage, boolean isConfigurationValid) {
@@ -96,6 +97,7 @@ public class ThermoView implements IThermoObserver, ICellObserver {
 
 
     private void initializeUI() {
+        heatModeCombobox.setPrefHeight(HEIGHT_TOP_ATTRIBUTES_BUTTONS);
         heatModeCombobox.getItems().addAll(ThermoController.getManualModeString(),ThermoController.getTargetModeString(),ThermoController.getSuccessiveModeString());
         heatModeCombobox.getSelectionModel().select(ThermoController.getManualModeString());  // selectionne lE mode manuel par défaut pour affichage
         selectedHeatMode=ThermoController.getManualModeString(); //selectionne mode manual par defaut comme valeur
@@ -174,14 +176,16 @@ public class ThermoView implements IThermoObserver, ICellObserver {
          *  G et B = 255 - (255/100)*87,5 =
          * ---> 255 - (255*(87,5/100))
          * 
-         * min 0 max 100 temp 50   ->gb attendu : 127,5*/
+         * min 0 max 100 temp 50   ->gb attendu : 127,5*
+         * 
+         * Problème foncionne pas avec temp négative 
+         * */
         int rgbRedValue = 255;
         double rgbBlueValue = 0;
         double rgbGreenValue = 0;
         double rgbGreenBlueValue = 255;
 
-        double totalEcart = ThermoController.getMaximumTemperature()-ThermoController.getMinimumTemperature();
-        rgbGreenBlueValue = 255-(255*(temperature/totalEcart));
+        rgbGreenBlueValue = 255-(255*(temperature/ThermoController.getGapBetweenMinMaxTemperature()));
         rgbBlueValue = rgbGreenBlueValue;
         rgbGreenValue = rgbGreenBlueValue;
         return getColorString(rgbRedValue+","+rgbGreenValue+","+rgbBlueValue);
@@ -249,24 +253,30 @@ public class ThermoView implements IThermoObserver, ICellObserver {
             }
             else{
                 color=getShadeOfRed(cellTemperature); //Pour cellule normale
-                //si avant c'etait une sc et mtn plus, on l'enlève des hashmap de sc
-                /*
-                 * if(heatCellsCounterMap.containsKey(cellId))heatCellsCounterMap.remove(cellId);
-                 * je ne retire pas de cette liste car sinon je dois changer le texte de toutes les cellules et je n'ai pas le temps 
-                 */
-                
-                if(heatCellsMap.containsKey(cellId)){
-                    Button buttonToRemove = heatCellsMap.get(cellId);
-                    heatCellsMap.remove(cellId);
-                    vboxHeatCellsInsideScrollPane.getChildren().remove(buttonToRemove); //faut changer le style des autres
-                }
+                removeCellFromHeatCells(cellId);
             }
             buttonToChangeColor.setText(stringToAddForHeatCells+String.format("%.1f", cellTemperature)); //1 seul chiffre après la virgule
         }
         else{
             buttonToChangeColor.setText("");//si c'etait une cell avant et que on l'a changé en morte, on ne veut plus voir sa temp affichée
             color = getColorString(DEAD_CELL_COLOR); //sinon si cellule morte en noir
+            removeCellFromHeatCells(cellId);
         }
         buttonToChangeColor.setStyle(color); //pr toutes les cellules on met une couleur
+    }
+
+    private void removeCellFromHeatCells(String cellId){
+        if(heatCellsCounterMap.containsKey(cellId)) {  //si avant c'etait une sc et mtn plus, on l'enlève des sc
+            Button buttonToRemove = heatCellsMap.get(cellId);
+            heatCellsMap.remove(cellId); //on supprime la cellule de la map des sc
+            heatCellsCounterMap.clear(); //on met à zéro la map du counter et la vbox car on devra mettre les nouveaux éléments
+            vboxHeatCellsInsideScrollPane.getChildren().clear();
+            for (String heatCellId : heatCellsMap.keySet()) {
+                heatCellsCounterMap.put(heatCellId, heatCellsCounterMap.size()+1);//met à jour le cpt
+                Button heatCellButton =createNewButton("S"+heatCellsCounterMap.get(heatCellId), WIDTH_SYSTEM_ATTRIBUTES_BUTTONS, HEIGHT_HEAT_SOURCES);
+                heatCellsMap.put(heatCellId, heatCellButton);//met à jour le bouton de la map
+                vboxHeatCellsInsideScrollPane.getChildren().add(heatCellButton);//met a jour la vbox
+            }
+        }
     }
 }

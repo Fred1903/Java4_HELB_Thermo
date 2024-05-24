@@ -15,8 +15,8 @@ public class CellConfigurationView{
     
     
     private Button submitButton;
-    private boolean clickedOnDeadCell=false;
-    private boolean clickedOnHeatCell=false;
+    private boolean isClickedOnDeadCell=false;
+    private boolean isClickedOnHeatCell=false;
 
     private Stage window;
 
@@ -25,7 +25,8 @@ public class CellConfigurationView{
     private final int SPACING_HBOX = 50;
     private final int SPACING_CONFIGURATION_VBOX = 30;
     private final int VISIBLE_ROW_COUNT = 10;  //ligne du dessous pour que si on a temp negative ca fonctionne aussi
-    private final int HALF_TEMPERATURE = (ThermoController.getMaximumTemperature()-(ThermoController.getMaximumTemperature()-ThermoController.getMinimumTemperature())/2);
+    private final int HALF_TEMPERATURE = ThermoController.getMaximumTemperature()-(ThermoController.getGapBetweenMinMaxTemperature()/2);
+    private final int HALF_TEMPERATURE_INDEX = ThermoController.getGapBetweenMinMaxTemperature()/2;
     private int row;
     private int col;
     private int choiceTemperature;
@@ -61,11 +62,12 @@ public class CellConfigurationView{
         Label textTemperatureLabel = createLabel("T° de la source quand activée");
 
         ComboBox<Integer> temperatureCombobox = new ComboBox<Integer>(); //0 min, 100 max 
-        for (int i = 0; i <= ThermoController.getMaximumTemperature(); i++) { //100 = max degrés a declarer qql part
+        for (int i = ThermoController.getMinimumTemperature(); i <= ThermoController.getMaximumTemperature(); i++) { 
             temperatureCombobox.getItems().add(i);
         }
         temperatureCombobox.setVisibleRowCount(VISIBLE_ROW_COUNT); //Fait que on voit que 10 nombre a la fois et pas tout
-        temperatureCombobox.getSelectionModel().select(HALF_TEMPERATURE);  // selectionne la valeur du milieu
+        System.out.println("half temp : "+HALF_TEMPERATURE);
+        temperatureCombobox.getSelectionModel().select(HALF_TEMPERATURE_INDEX);  // selectionne la valeur du milieu
         choiceTemperature=HALF_TEMPERATURE;//on met la temp a celle par defaut, au cas ou elle n'est pas changée
         
         submitButton.setStyle("-fx-border-color: black; -fx-border-width: 2px; -fx-padding:30px; -fx-border-radius:15px;");
@@ -88,7 +90,7 @@ public class CellConfigurationView{
         configurationLayout.setAlignment(Pos.CENTER);
 
         if(isHeatCell){//si sc, alors la case sc sera cochée, si on la déchoche ne sera plus sc
-            clickedOnHeatCell=true;
+            isClickedOnHeatCell=true;
             defineAsHeatCellCheckbox.setSelected(true);
             defineAsDeadCellCheckbox.setDisable(true);
         }
@@ -100,11 +102,12 @@ public class CellConfigurationView{
         defineAsDeadCellCheckbox.setOnAction(event -> {
             if (defineAsDeadCellCheckbox.isSelected()) { //si checkbox sélectionné, l'autre n'est pas sélectionnable
                 defineAsHeatCellCheckbox.setDisable(true);
-                clickedOnHeatCell=false;
-                clickedOnDeadCell=true;
+                isClickedOnHeatCell=false;
+                isClickedOnDeadCell=true;
+                System.out.println("CLICK DEAD TRUE");
             }
             else{
-                clickedOnDeadCell=false; //dans le cas ou aucune des deux cases est cochés
+                isClickedOnDeadCell=false; //dans le cas ou aucune des deux cases est cochés
                 defineAsHeatCellCheckbox.setDisable(false);
             }
         });
@@ -112,17 +115,18 @@ public class CellConfigurationView{
         defineAsHeatCellCheckbox.setOnAction(event -> {
             if (defineAsHeatCellCheckbox.isSelected()) {
                 defineAsDeadCellCheckbox.setDisable(true);
-                clickedOnHeatCell=true;
-                clickedOnDeadCell=false;
+                isClickedOnHeatCell=true;
+                isClickedOnDeadCell=false;
             }
             else{
-                clickedOnHeatCell=false; //dans le cas ou aucune des deux cases est cochés
+                isClickedOnHeatCell=false; //dans le cas ou aucune des deux cases est cochés
                 defineAsDeadCellCheckbox.setDisable(false);
             }
         });
 
         temperatureCombobox.valueProperty().addListener((observable, oldValue, newValue) -> {
             choiceTemperature=newValue;
+            System.out.println("Choosed temp is :"+choiceTemperature);
         });
 
         Scene scene = new Scene(configurationLayout);
@@ -143,10 +147,14 @@ public class CellConfigurationView{
     }
 
     public boolean isClickedOnDeadCell() {
-        return clickedOnDeadCell;
+        boolean isClickedDeadToReturn = isClickedOnDeadCell;
+        isClickedOnDeadCell = false;
+        return isClickedDeadToReturn;
     }
 
     public boolean isClickedOnHeatCell() {
-        return clickedOnHeatCell;
+        boolean isClickedHeatToReturn = isClickedOnHeatCell;
+        isClickedOnHeatCell = false;
+        return isClickedHeatToReturn;
     }
 }
