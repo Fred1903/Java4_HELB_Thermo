@@ -105,6 +105,7 @@ class TargetStrategy implements HeatCellStrategy{
                     //on enleve la temperature de la cellule pour voir cmb fait la moyenne sans celle-ci 
                     averageTemperature = totalTemperatureWithoutThisCell/numberAliveCellsWithoutThisCell;
                     newAverageTemperature=averageTemperature;
+                    if(averageTemperature<=IDEAL_TEMPERATURE)break; //si temp <=20 alors on arrete la boucle 
                 } 
                 allHeatCellsDesactivated=true;
             }
@@ -116,7 +117,8 @@ class TargetStrategy implements HeatCellStrategy{
                     double cellTemperature = cell.getTemperature();
                     double totalTemperatureWithoutThisCell = averageTemperature*numberAliveCells-cellTemperature;
                     averageTemperature = (totalTemperatureWithoutThisCell+cellTemperature)/numberAliveCells;
-                    newAverageTemperature=averageTemperature;
+                    newAverageTemperature=averageTemperature;;
+                    if(averageTemperature>=IDEAL_TEMPERATURE)break; //si temp <=20 alors on arrete la boucle 
                 }
                 allHeatCellsActivated=true;
             }

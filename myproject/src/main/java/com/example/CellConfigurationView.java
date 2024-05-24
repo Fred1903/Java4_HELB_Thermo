@@ -56,7 +56,7 @@ public class CellConfigurationView{
         window.setMinWidth(MIN_WIDTH);
         window.setMinHeight(MIN_HEIGHT);
      
-        Label cellPositionLabel = createLabel("Position de la cellule : \nLigne : "+row+" Colonne : "+col);
+        Label cellPositionLabel = createLabel("Position de la cellule : \nLigne : "+(row+1)+" Colonne : "+(col+1));//+1 car row 0 on va dire 1 pas 0
         Label defineAsDeadCellLabel = createLabel("Définir comme cellule morte");
         Label defineAsHeatCellLabel = createLabel("Définir comme source de chaleur");
         Label textTemperatureLabel = createLabel("T° de la source quand activée");
@@ -66,10 +66,12 @@ public class CellConfigurationView{
             temperatureCombobox.getItems().add(i);
         }
         temperatureCombobox.setVisibleRowCount(VISIBLE_ROW_COUNT); //Fait que on voit que 10 nombre a la fois et pas tout
-        System.out.println("half temp : "+HALF_TEMPERATURE);
         temperatureCombobox.getSelectionModel().select(HALF_TEMPERATURE_INDEX);  // selectionne la valeur du milieu
+        temperatureCombobox.setStyle("-fx-border-color: black; -fx-border-width: 2px; -fx-padding:10px; -fx-border-radius:15px;");
+
         choiceTemperature=HALF_TEMPERATURE;//on met la temp a celle par defaut, au cas ou elle n'est pas changée
         
+
         submitButton.setStyle("-fx-border-color: black; -fx-border-width: 2px; -fx-padding:30px; -fx-border-radius:15px;");
 
         CheckBox defineAsDeadCellCheckbox = new CheckBox();

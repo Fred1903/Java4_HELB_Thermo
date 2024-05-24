@@ -106,6 +106,7 @@ public class ThermoController implements IThermoObservable {
             setActions();
 
             primaryStage.setOnCloseRequest(e ->{ //quand on ferme l'app on créé le fichier log
+                System.out.println("on close request");
                 log.createLogFile(); 
             });
         } 
@@ -325,7 +326,7 @@ public class ThermoController implements IThermoObservable {
 
             }
             calculate(); 
-            log.addLog(numberSeconds,outsideTemperature,averageTemperature); //ajout a chaque seconde des infos pour le log
+            log.addLog(numberSeconds,cost,outsideTemperature,averageTemperature); //ajout a chaque seconde des infos pour le log
         };
         keyFrame = new KeyFrame(duration, eventHandler);
         timeline = new Timeline(keyFrame);
