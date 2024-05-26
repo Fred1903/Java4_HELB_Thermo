@@ -18,7 +18,7 @@ public class ThermoController implements IThermoObservable {
     private CellFactory cellFactory;
     private ICellObserver cellObserver;
     private IThermoObserver thermoObserver;
-    private HeatCellStrategy heatCellStrategy = ManualStrategy.getInstance();//on commence avec manual strategie
+    private IHeatCellStrategy heatCellStrategy = ManualStrategy.getInstance();//on commence avec manual strategie
     private ExteriorTemperatureParser exteriorTemperatureParser;
     private Log log = new Log();
 
@@ -35,7 +35,7 @@ public class ThermoController implements IThermoObservable {
     private final static int MINIMUM_NUMBER_ROWS_AND_COLUMNS = 3;
     private final static int MAXIMUM_NUMBER_ROWS_AND_COLUMNS = 12;
     private final static int NUMBER_ROWS = 4;
-    private final static int NUMBER_COLUMNS = 4;
+    private final static int NUMBER_COLUMNS = 5;
     private final static int LASTROW = NUMBER_ROWS-1;
     private final static int LASTCOLUMN = NUMBER_COLUMNS-1;
     private final static int DEAD_CELL_NO_TEMPERATURE = -500; //cellule morte n'a pas de temperature mais comme un int ne peut pas etre 'null' on va lui mettre -500
@@ -313,12 +313,8 @@ public class ThermoController implements IThermoObservable {
             incrementTime(); //toutes les secondes on incrémente le temps
             Cell uselessCell = new Cell();
             if(currentStrategy.equals(TARGET_MODE_STRING)){
-                TargetStrategy targetStrategy = (TargetStrategy) heatCellStrategy;//on doit mettre en target car ya getNewAverageTemp
+                TargetStrategy targetStrategy = (TargetStrategy) heatCellStrategy;//on doit mettre en target car ya getNewAverageTemp qui est pas dans interface
                 targetStrategy.applyStrategy(uselessCell, averageTemperature, heatCellMap, numberAliveCells);
-                //TargetStrategy heatCellStrategy = (TargetStrategy) heatCellStrategy;
-                //TargetStrategy targetStrategy = (TargetStrategy) heatCellStrategy; 
-                //On caste heatCellStrategy en target car la methode getTemperature n'Est pas dans la  classe mere
-                //averageTemperature=heatCellStrategy.getNewAverageTemperature();
                 averageTemperature = targetStrategy.getNewAverageTemperature();
             } 
             else if(currentStrategy.equals(SUCCESSIVE_MODE_STRING)){

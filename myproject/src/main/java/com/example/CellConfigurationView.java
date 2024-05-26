@@ -128,7 +128,6 @@ public class CellConfigurationView{
 
         temperatureCombobox.valueProperty().addListener((observable, oldValue, newValue) -> {
             choiceTemperature=newValue;
-            System.out.println("Choosed temp is :"+choiceTemperature);
         });
 
         Scene scene = new Scene(configurationLayout);

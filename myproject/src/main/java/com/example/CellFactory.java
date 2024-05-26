@@ -2,8 +2,7 @@ package com.example;
 
 import java.util.HashMap;
 
-public class CellFactory { /////////est-ce que factory doit etre en static ??
-    private Cell cell;
+public class CellFactory {
 
     private final int startMinDeadCell=0;
     private final int ROW_POSITION_IN_MATRIX = 0;
@@ -14,7 +13,6 @@ public class CellFactory { /////////est-ce que factory doit etre en static ??
     private int probabiltyToBeDeadCell;
     private int maxDeadCell = ThermoController.getNumberRows()+ThermoController.getNumberColumns();
     private int minDeadCell = startMinDeadCell;
-    private int distance ;
     private int middleRow;
     private int middleColumn;
     private int firstTemperature;

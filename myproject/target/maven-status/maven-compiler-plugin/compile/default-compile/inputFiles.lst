@@ -7,7 +7,7 @@
 /media/sf_Java4_HELB_Thermo/myproject/src/main/java/com/example/ThermoController.java
 /media/sf_Java4_HELB_Thermo/myproject/src/main/java/com/example/IThermoObservable.java
 /media/sf_Java4_HELB_Thermo/myproject/src/main/java/com/example/CellFactory.java
-/media/sf_Java4_HELB_Thermo/myproject/src/main/java/com/example/HeatCellStrategy.java
 /media/sf_Java4_HELB_Thermo/myproject/src/main/java/com/example/Log.java
+/media/sf_Java4_HELB_Thermo/myproject/src/main/java/com/example/IHeatCellStrategy.java
 /media/sf_Java4_HELB_Thermo/myproject/src/main/java/com/example/CellConfigurationView.java
 /media/sf_Java4_HELB_Thermo/myproject/src/main/java/com/example/ICellObserver.java

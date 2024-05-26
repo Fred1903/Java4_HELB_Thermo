@@ -135,22 +135,22 @@ public class Cell implements ICellObservable{
         this.averageTemperature = averageTemperature;
         int numberAliveCellsChanges=0;
         if(isDead){
-            if(!isClickedOnDeadCell){
+            if(!isClickedOnDeadCell){ //si elle est morte mais que on l'enleve
                 setDead(!isCellDead());
                 numberAliveCellsChanges++;
             } 
         }
-        else{
+        else{//si elle était vivante mais qu'on la met en morte
             if(isClickedOnDeadCell){ 
                 numberAliveCellsChanges--;
                 setDead(!isDead);
             }
         }
-        if(isHeatCell){
+        if(isHeatCell){//si sc qu'on enleve
             if(!isClickedOnHeatCell){
                 setIsHeatCell(!isHeatCell);
             }
-            else{
+            else{//si sc qu'on change la temperature
                 if(choiceTemperature!=temperature){
                     setTemperature(choiceTemperature);
                     heatTemperatureBeforeDesactivating=temperature;

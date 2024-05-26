@@ -1,5 +1,6 @@
 com/example/Cell.class
 com/example/Log.class
+com/example/IHeatCellStrategy.class
 com/example/TargetStrategy.class
 com/example/CellFactory.class
 com/example/IThermoObserver.class
@@ -13,4 +14,3 @@ com/example/SuccesiveStrategy.class
 com/example/ThermoView.class
 com/example/IThermoObservable.class
 com/example/Main.class
-com/example/HeatCellStrategy.class

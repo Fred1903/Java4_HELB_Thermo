@@ -4,11 +4,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public interface HeatCellStrategy{
+public interface IHeatCellStrategy{
     void applyStrategy(Cell cell, double averageTemperature, HashMap<String, Cell> heatCellMap, int uselessNumberAliveCells);
 }
 
-class ManualStrategy implements  HeatCellStrategy{//attention on ne peut pas mettre public devant, car sinon doit faire dans un autre fichier
+class ManualStrategy implements  IHeatCellStrategy{//attention on ne peut pas mettre public devant, car sinon doit faire dans un autre fichier
     private static ManualStrategy instance ; 
 
     private ManualStrategy(){} //Toutes les stratégies sont en singleton car on veut pas les instancier plusieurs fois
@@ -26,7 +26,7 @@ class ManualStrategy implements  HeatCellStrategy{//attention on ne peut pas met
     }
 }
 
-class SuccesiveStrategy implements  HeatCellStrategy{
+class SuccesiveStrategy implements  IHeatCellStrategy{
     private static SuccesiveStrategy instance ; 
 
     private List<String> heatCellList = new ArrayList<String>();
@@ -83,7 +83,7 @@ class SuccesiveStrategy implements  HeatCellStrategy{
 }
 
 
-class TargetStrategy implements HeatCellStrategy{
+class TargetStrategy implements IHeatCellStrategy{
     private static TargetStrategy instance ; 
     private double newAverageTemperature;
     private final int IDEAL_TEMPERATURE = 20;

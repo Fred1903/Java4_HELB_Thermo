@@ -77,7 +77,6 @@ public class ThermoView implements IThermoObserver, ICellObserver {
     private HashMap<String,Button> cellMap= new HashMap<String,Button>(); //CellId(Ex Row=10 et col =8 ---> "R10C8"), btn
     private HashMap<String, Button> heatCellsMap = new HashMap<String, Button>(); //cellId, btn
     private HashMap<String, Integer> heatCellsCounterMap = new HashMap<String,Integer>(); //cellId,counter
-    //private HashMap<String, String> 
     
  
     public ThermoView(Stage stage, boolean isConfigurationValid) {
@@ -115,7 +114,6 @@ public class ThermoView implements IThermoObserver, ICellObserver {
         cellBoard.setHgap(CELL_BOARD_HGAP_AND_VGAP);//espacement entre cellules horizontalement
         cellBoard.setVgap(CELL_BOARD_HGAP_AND_VGAP); //espacement entre cellules verticalement
         cellBoard.setStyle("-fx-border-color: black; -fx-border-width: 2px; -fx-padding:30px; -fx-border-radius:30px");
-        //cellBoard.setPrefHeight((ThermoController.getNumberRows()*WIDTH_HEIGHT_CELLS)+CELL_BOARD_HGAP_AND_VGAP+CELL_BOARD_HGAP_AND_VGAP);//hauteur = hauteur de toutes les cellules + le margin
         cellBoard.setPrefHeight(CELL_BOARD_PREF_HEIGHT);
         cellBoard.setPrefWidth(CELL_BOARD_PREF_WIDTH);
 
@@ -224,10 +222,10 @@ public class ThermoView implements IThermoObserver, ICellObserver {
         return heatModeCombobox;
     }
 
-    @Override//Pour mettre à jour le temps affiché
+    @Override //Pour mettre à jour le temps affiché
     public void updateSystemAttributes(int time, double averageTemperature, double exteriorTemperature, double cost) {
         timeButton.setText("Temps : "+time+"s");
-        averageTemperatureButton.setText("T°moy : "+String.format("%.1f", averageTemperature)+"°C"); //permet d'afficher seulement 1 chiffre après la virgule
+        averageTemperatureButton.setText("T°moy : "+String.format("%.1f", averageTemperature)+"°C");//permet d'afficher seulement 1 chiffre après la virgule
         exteriorTemperatureButton.setText("T°ext : "+exteriorTemperature+"°C");
         costButton.setText("Coût : "+String.format("%.1f", cost)+"€");
     }
